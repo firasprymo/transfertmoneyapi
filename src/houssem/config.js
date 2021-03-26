@@ -1,6 +1,4 @@
 module.exports = {
- 
-   
     URL:"https://www.uuidgenerator.net/api/version4",
     URLMONY:"https://sandbox.momodeveloper.mtn.com/v1_0/",
     URLCOLLECTION:"https://sandbox.momodeveloper.mtn.com/collection/token/",
