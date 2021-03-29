@@ -6,12 +6,14 @@ const router = express.Router();
 
 router.post('/signup', authController.signup);
 router.get('/veriferCodeSMS',authController.VeriferCodeSMS);
-
+router.get('/envoyerCodeSMS',authController.VeriferCodeSMS);
 router.post('/login', authController.login);
 router.get('/logout', authController.logout);
 
 router.post('/forgotPassword', authController.forgotPassword);
-router.patch('/resetPassword/:token', authController.resetPassword);
+router.patch('/resetPassword', authController.resetPassword);
+
+router.patch('/resetCodePin',authController.restCodePin);
 
 // Protect all routes after this middleware
 router.use(authController.protect);

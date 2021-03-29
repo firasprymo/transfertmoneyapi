@@ -41,13 +41,13 @@ const userSchema = new mongoose.Schema({
     type:Number,
     required:[true, 'Veuillez saisir votre numero telephone'],
     minlength:8,
-    // validate : {
-    //   validator: function(el) {
-    //     return el.toString.length >8
-    //   },
-    //   message:'votre numero doit etre au minimum 10 characters'
+    validate : {
+      validator: function(el) {
+        return el.toString().length >8
+      },
+      message:'votre numero doit etre au minimum 10 characters'
         
-    // }
+    }
 
   },
   codePin: {
