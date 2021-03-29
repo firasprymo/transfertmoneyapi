@@ -18,10 +18,7 @@ const userSchema = new mongoose.Schema({
   photo: {
     type: String,
     default: 'default.jpg'
-
   },
-  
-
   role: {
     type: String,
     enum: ['user', 'guide', 'lead-guide', 'admin'],
@@ -132,7 +129,7 @@ userSchema.methods.changedPasswordAfter = function(JWTTimestamp) {
 };
 
 userSchema.methods.createPasswordResetToken = function() {
-  const resetToken = crypto.randomBytes(32).toString('hex');
+  const resetToken = crypto.randomBytes(8).toString('hex');
 
   this.passwordResetToken = crypto
     .createHash('sha256')

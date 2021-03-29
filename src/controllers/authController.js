@@ -5,7 +5,9 @@ const User = require('./../models/userModel');
 const catchAsync = require('./../utils/catchAsync');
 const AppError = require('./../utils/appError');
 const Email = require('./../utils/email');
-const client = require('twilio')(process.env.ACCOUNT_SID_TWILIO, process.env.AUTH_TOKEN_TWILIO)
+const client = require('twilio')(  process.env.TWILIO_ACCOUNT_SID,
+  process.env.TWILIO_AUTH_TOKEN
+);
 
 const signToken = id => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -13,91 +15,71 @@ const signToken = id => {
   });
 };
 
-
-
 exports.signup = catchAsync(async (req, res, next) => {
-  if (!req.body) return next(new AppError('Veuillez remplir votre formulaire!', 400));
+  if (!req.body)
+    return next(new AppError('Veuillez remplir votre formulaire!', 400));
   const newUser = await User.create(req.body);
   // const url = `${req.protocol}://${req.get('host')}/me`;
   // await new Email(newUser, url).sendWelcome();
   //createSendToken(newUser, 201, req, res);
-  const token = signToken(newUser._id);
-  const cookieOptions = {
-    expires: new Date(
-      Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
-    ),
-    httpOnly: true,
-  };
-  if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
-  res.cookie('jwt', token, cookieOptions);
-  SendSMS(newUser,token, req, res, next)
+  // const token = signToken(newUser._id);
+  // const cookieOptions = {
+  //   expires: new Date(
+  //     Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
+  //   ),
+  //   httpOnly: true,
+  // };
+  // if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
+  // res.cookie('jwt', token, cookieOptions);
+  await new Email(newUser, url).sendWelcome();
+
+  createSendToken(newUser, 201, res);
+  SendSMS(newUser, token, req, res, next);
 });
 
-
-//send code with SMS phone 
-const SendSMS = async (user,token, req, res, next) => {
-  const phoneNumber = user.phoneNumber
-  if (phoneNumber) {
-    const SMS = await client
-      .verify
-      .services(process.env.SERVICE_ID_TWILIO)
-      .verifications
-      .create({
-        locale: 'fr',
-        to: `+${phoneNumber}`,
-        channel: 'sms'
-      })
-    user.password = undefined;
-    if (SMS) {
-      res.status(200).send({
-        message: "vérifier votre telephone",
-        status: 'success',
-        token,
-        data: {
-          user,
-        },
-
-      })
-
-    }
-
-  } else {
-    res.status(400).send({
-      message: "Wrong phone number :(",
-      phonenumber: phoneNumber,
-    })
+//send code with SMS phone
+const SendSMS = catchAsync(async (user, token, req, res, next) => {
+  const phoneNumber = user.phoneNumber;
+  if (!phoneNumber) {
+    return next(new AppError('Numéro de téléphone invalide!', 400));
   }
+  const SMS = await client.verify
+    .services(process.env.SERVICE_ID_TWILIO)
+    .verifications.create({
+      locale: 'fr',
+      to: `+${phoneNumber}`,
+      channel: 'sms'
+    });
 
-}
+  res.status(200).send({
+    message: 'Vérifier votre numéro de télèphone',
+    status: 'success',
+    token,
+    data: {
+      user
+    }
+  });
+});
 
 //verifer le code envoyer SMS
-exports.VeriferCodeSMS = ((req,res,next) => {
-  if (req.query.phonenumber && (req.query.code)) {
-      client
-          .verify
-          .services(process.env.SERVICE_ID_TWILIO)
-          .verificationChecks
-          .create({
-              to: `+${req.query.phonenumber}`,
-              code: req.query.code
-          })
-          .then(data => {
-              if (data.status === "approved") {
-                  res.status(200).send({
-                      message: "User is Verified!!",
-                   
-                  })
-              }
-          })
-  } else {
-      res.status(400).send({
-          message: "Wrong phone number or code :(",
-
-      })
+exports.VeriferCodeSMS = (req, res, next) => {
+  if (!req.query.phonenumber && !req.query.code) {
+    return next(new AppError('Code de vérification invalide!', 400));
   }
-
-})
-
+  client.verify
+    .services(process.env.SERVICE_ID_TWILIO)
+    .verificationChecks.create({
+      to: `+${req.query.phonenumber}`,
+      code: req.query.code
+    })
+    .then(data => {
+      if (data.status === 'approved') {
+        res.status(200).send({
+          message: 'User is Verified!!'
+        });
+      }
+    });
+};
 
 const createSendToken = (user, statusCode, res) => {
   const token = signToken(user._id);
@@ -105,7 +87,7 @@ const createSendToken = (user, statusCode, res) => {
     expires: new Date(
       Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
     ),
-    httpOnly: true,
+    httpOnly: true
   };
   if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
   res.cookie('jwt', token, cookieOptions);
@@ -115,21 +97,21 @@ const createSendToken = (user, statusCode, res) => {
     status: 'success',
     token,
     data: {
-      user,
-    },
+      user
+    }
   });
 };
 
-
 exports.signup = catchAsync(async (req, res, next) => {
   console.log(req.body);
-  if (!req.body)    return next(new AppError('Veuillez remplir votre formulaire!', 400));
-  const newUser = await User.create( req.body);
+  if (!req.body)
+    return next(new AppError('Veuillez remplir votre formulaire!', 400));
+  const newUser = await User.create(req.body);
 
   const url = `${req.protocol}://${req.get('host')}/me`;
   await new Email(newUser, url).sendWelcome();
 
-  createSendToken(newUser, 201,  res);
+  createSendToken(newUser, 201, res);
 });
 exports.login = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
@@ -146,7 +128,7 @@ exports.login = catchAsync(async (req, res, next) => {
   }
 
   // 3) If everything ok, send token to client
-  createSendToken(user, 200,  res);
+  createSendToken(user, 200, res);
 });
 
 exports.logout = (req, res) => {
@@ -300,7 +282,7 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   }
   user.password = req.body.password;
   user.passwordConfirm = req.body.passwordConfirm;
-  user.codePin = req.body.codePin
+  user.codePin = req.body.codePin;
   user.passwordResetToken = undefined;
   user.passwordResetExpires = undefined;
   await user.save();
