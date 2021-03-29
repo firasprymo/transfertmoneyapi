@@ -27,7 +27,8 @@ router.patch(
 router.delete('/deleteMe', userController.deleteMe);
 
 router.use(authController.restrictTo('admin'));
-
+router.patch('/bloqueUser', userController.bloqueUser);
+router.patch('/activeUser', userController.activeUser);
 router
   .route('/')
   .get(userController.getAllUsers)
