@@ -5,12 +5,99 @@ const User = require('./../models/userModel');
 const catchAsync = require('./../utils/catchAsync');
 const AppError = require('./../utils/appError');
 const Email = require('./../utils/email');
+const client = require('twilio')(process.env.ACCOUNT_SID_TWILIO, process.env.AUTH_TOKEN_TWILIO)
 
 const signToken = id => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN
   });
 };
+
+
+
+exports.signup = catchAsync(async (req, res, next) => {
+  if (!req.body) return next(new AppError('Veuillez remplir votre formulaire!', 400));
+  const newUser = await User.create(req.body);
+  // const url = `${req.protocol}://${req.get('host')}/me`;
+  // await new Email(newUser, url).sendWelcome();
+  //createSendToken(newUser, 201, req, res);
+  const token = signToken(newUser._id);
+  const cookieOptions = {
+    expires: new Date(
+      Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
+    ),
+    httpOnly: true,
+  };
+  if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
+  res.cookie('jwt', token, cookieOptions);
+  SendSMS(newUser,token, req, res, next)
+});
+
+
+//send code with SMS phone 
+const SendSMS = async (user,token, req, res, next) => {
+  const phoneNumber = user.phoneNumber
+  if (phoneNumber) {
+    const SMS = await client
+      .verify
+      .services(process.env.SERVICE_ID_TWILIO)
+      .verifications
+      .create({
+        locale: 'fr',
+        to: `+${phoneNumber}`,
+        channel: 'sms'
+      })
+    user.password = undefined;
+    if (SMS) {
+      res.status(200).send({
+        message: "vérifier votre telephone",
+        status: 'success',
+        token,
+        data: {
+          user,
+        },
+
+      })
+
+    }
+
+  } else {
+    res.status(400).send({
+      message: "Wrong phone number :(",
+      phonenumber: phoneNumber,
+    })
+  }
+
+}
+
+//verifer le code envoyer SMS
+exports.VeriferCodeSMS = ((req,res,next) => {
+  if (req.query.phonenumber && (req.query.code)) {
+      client
+          .verify
+          .services(process.env.SERVICE_ID_TWILIO)
+          .verificationChecks
+          .create({
+              to: `+${req.query.phonenumber}`,
+              code: req.query.code
+          })
+          .then(data => {
+              if (data.status === "approved") {
+                  res.status(200).send({
+                      message: "User is Verified!!",
+                   
+                  })
+              }
+          })
+  } else {
+      res.status(400).send({
+          message: "Wrong phone number or code :(",
+
+      })
+  }
+
+})
+
 
 const createSendToken = (user, statusCode, res) => {
   const token = signToken(user._id);
@@ -21,12 +108,9 @@ const createSendToken = (user, statusCode, res) => {
     httpOnly: true,
   };
   if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
-
   res.cookie('jwt', token, cookieOptions);
-
   // Remove password from output
   user.password = undefined;
-
   res.status(statusCode).json({
     status: 'success',
     token,
@@ -35,6 +119,7 @@ const createSendToken = (user, statusCode, res) => {
     },
   });
 };
+
 
 exports.signup = catchAsync(async (req, res, next) => {
   console.log(req.body);
@@ -46,7 +131,6 @@ exports.signup = catchAsync(async (req, res, next) => {
 
   createSendToken(newUser, 201,  res);
 });
-
 exports.login = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
 
@@ -130,6 +214,7 @@ exports.isLoggedIn = async (req, res, next) => {
 
       // 2) Check if user still exists
       const currentUser = await User.findById(decoded.id);
+
       if (!currentUser) {
         return next();
       }
@@ -215,6 +300,7 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   }
   user.password = req.body.password;
   user.passwordConfirm = req.body.passwordConfirm;
+  user.codePin = req.body.codePin
   user.passwordResetToken = undefined;
   user.passwordResetExpires = undefined;
   await user.save();

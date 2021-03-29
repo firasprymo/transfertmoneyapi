@@ -19,6 +19,7 @@ const reviewRouter = require('./src/routes/reviewRoutes');
 const bookingRouter = require('./src/routes/bookingRoutes');
 const bookingController = require('./src/controllers/bookingController');
 const viewRouter = require('./src/routes/viewRoutes');
+const trensferRouter = require('./src/routes/trensferRouter');
 
 // Start express app
 const app = express();
@@ -90,6 +91,7 @@ app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/reviews', reviewRouter);
 app.use('/api/v1/bookings', bookingRouter);
+app.use('/api/v1/trensfer', trensferRouter);
 
 app.all('*', (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
