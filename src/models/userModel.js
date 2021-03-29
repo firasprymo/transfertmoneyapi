@@ -6,14 +6,14 @@ const bcrypt = require('bcryptjs');
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: [true, 'Please tell us your name!']
+    required: [true, 'merci de saisir votre nom']
   },
   email: {
     type: String,
-    required: [true, 'Please provide your email'],
+    required: [true, 'merci de saisir votre email'],
     unique: true,
     lowercase: true,
-    validate: [validator.isEmail, 'Please provide a valid email']
+    validate: [validator.isEmail, 'merci de saisir un email correcte']
   },
   photo: {
     type: String,
@@ -26,19 +26,31 @@ const userSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: [true, 'Please provide a password'],
+    required: [true, 'merci de saisir votre mots de passe'],
     minlength: 8,
     select: false
   },
+  codePin: {
+    required: [true, 'merci de saisir votre code pin'],
+    type: Number,
+    minlength: 4,
+    maxlength: 4
+  },
+  phoneNumber: {
+    type: Number,
+    required: [true, 'Veuillez saisir votre numero telephone'],
+    maxlength: 8,
+    minlength: 8
+  },
   passwordConfirm: {
     type: String,
-    required: [true, 'Please confirm your password'],
+    required: [true, 'merci de confirmer votre mot de passe '],
     validate: {
       // This only works on CREATE and SAVE!!!
       validator: function(el) {
         return el === this.password;
       },
-      message: 'Passwords are not the same!'
+      message: 'les mots de passe ne sont pas les mêmes!'
     }
   },
   passwordChangedAt: Date,
@@ -46,8 +58,8 @@ const userSchema = new mongoose.Schema({
   passwordResetExpires: Date,
   active: {
     type: Boolean,
-    default: true,
-    select: false
+    default: false,
+    // select: false
   }
 });
 

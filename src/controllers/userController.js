@@ -102,7 +102,29 @@ exports.createUser = (req, res) => {
     message: 'This route is not defined! Please use /signup instead'
   });
 };
+exports.bloqueUser = catchAsync(async (req, res) => {
+  // console.log('id',req.params.id)
+  await User.findByIdAndUpdate(req.body.id, {
+    active: false,
+  });
 
+  // console.log('user',user);
+  res.status(200).json({
+    status: 'Validé',
+    data: null,
+  });
+});
+exports.activeUser = catchAsync(async (req, res) => {
+  // console.log('idddd',req.body)
+  await User.findByIdAndUpdate(req.body.id, {
+    active: true,
+  });
+  // console.log('user',user);
+  res.status(200).json({
+    status: 'Validé',
+    data: null,
+  });
+});
 exports.getUser = factory.getOne(User);
 exports.getAllUsers = factory.getAll(User);
 
