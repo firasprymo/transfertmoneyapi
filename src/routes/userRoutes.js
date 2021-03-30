@@ -13,7 +13,7 @@ router.get('/logout', authController.logout);
 router.post('/forgotPassword', authController.forgotPassword);
 router.patch('/resetPassword', authController.resetPassword);
 
-router.patch('/resetCodePin',authController.restCodePin);
+router.patch('/resetCodePin',authController.resetCodePin);
 
 // Protect all routes after this middleware
 router.use(authController.protect);
