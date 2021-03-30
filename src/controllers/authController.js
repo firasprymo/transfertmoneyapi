@@ -33,6 +33,9 @@ const SendSMS = catchAsync(async (user, req, res, next) => {
       channel: 'sms'
     });
   
+    if (SMS.status == 429) {
+      return next(new AppError('Essayer Plus Tard', 400));
+    }
   
 });
 
@@ -298,6 +301,7 @@ exports.sendCodeVerification = catchAsync(async (req, res, next) => {
       to: `+${req.body.phonenumber}`,
       channel: 'sms'
     });
+    
   res.status(200).json({ status: 'success' });
 });
 
