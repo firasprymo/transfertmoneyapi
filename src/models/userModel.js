@@ -35,7 +35,14 @@ const userSchema = new mongoose.Schema({
     required:[true, 'merci de saisir votre code pin'],
     type:Number,
     minlength:4,
-    maxlength:4
+    maxlength:4,
+    validate : {
+      validator: function(el) {
+        return el.toString().length === 4
+      },
+      message:'votre numero doit etre égal a 4 characters'
+        
+    }
   },
   phoneNumber:{
     type:Number,
@@ -50,18 +57,7 @@ const userSchema = new mongoose.Schema({
     }
 
   },
-  codePin: {
-    required: [true, 'merci de saisir votre code pin'],
-    type: Number,
-    minlength: 4,
-    maxlength: 4
-  },
-  phoneNumber: {
-    type: Number,
-    required: [true, 'Veuillez saisir votre numero telephone'],
-    maxlength: 8,
-    minlength: 8
-  },
+
   passwordConfirm: {
     type: String,
      required: [true, 'merci de confirmer votre  mot de passe '],
@@ -136,7 +132,6 @@ userSchema.methods.createPasswordResetToken = function() {
     .update(resetToken)
     .digest('hex');
 
-  // console.log({ resetToken }, this.passwordResetToken);
 
   this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
 

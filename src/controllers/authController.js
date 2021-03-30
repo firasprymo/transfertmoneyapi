@@ -5,7 +5,10 @@ const User = require('./../models/userModel');
 const catchAsync = require('./../utils/catchAsync');
 const AppError = require('./../utils/appError');
 const Email = require('./../utils/email');
+const bcrypt = require('bcryptjs');
 const { token } = require('morgan');
+
+
 const client = require('twilio')(  process.env.TWILIO_ACCOUNT_SID,
   process.env.TWILIO_AUTH_TOKEN
 );
@@ -59,14 +62,14 @@ exports.VeriferCodeSMS = catchAsync(async(req, res, next) => {
 
 const createSendToken = (user, statusCode, res) => {
   const token = signToken(user._id);
-  const cookieOptions = {
-    expires: new Date(
-      Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
-    ),
-    httpOnly: true
-  };
-  if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
-  res.cookie('jwt', token, cookieOptions);
+  // const cookieOptions = {
+  //   expires: new Date(
+  //     Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
+  //   ),
+  //   httpOnly: true
+  // };
+  // if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
+  // res.cookie('jwt', token, cookieOptions);
   // Remove password from output
   user.password = undefined;
   res.status(statusCode).json({
@@ -285,18 +288,16 @@ exports.restCodePin = catchAsync(async(req,res,next) =>{
    // 1) Get user based on the token 
    decryptToken = jwt.decode(req.query.token, process.env.JWT_SECRET);
    //filter if user exist or no
-    const user = await User.findOne({_id:decryptToken.id})
-    if(!user) {
-      return next(new AppError('Token is invalid or has expired', 400));
-
+    var user = await User.findOne({_id:decryptToken.id}).select('+password')
+    if (!user || !(await user.correctPassword(req.body.password, user.password))) {
+      return next(new AppError('Token is invalid or Password', 401));
     }
-    if(user.password !== req.body.password) {
-      return next(new AppError('this user not found',400));
-    }
-
-    user.codePin = req.body.codePin
+    user.password = req.body.password;
+    user.passwordConfirm = req.body.password;
+    user.codePin = req.body.codePin;
     await user.save();
-    createSendToken(user,200,res)
+    createSendToken(user, 200, res);
+ 
    
 })
 
@@ -318,3 +319,7 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
   // 4) Log user in, send JWT
   createSendToken(user, 200, req, res);
 });
+//login with code pin
+exports.loginCodePin = catchAsync(async(req,res,next) =>{
+  
+})
