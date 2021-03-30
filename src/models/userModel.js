@@ -14,7 +14,7 @@ const userSchema = new mongoose.Schema({
     unique: true,
     lowercase: true,
     validate: [validator.isEmail, 'merci de saisir un email correcte']
-    },
+  },
   photo: {
     type: String,
     default: 'default.jpg'
@@ -28,8 +28,8 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, 'merci de saisir votre mots de passe'],
     minlength: 8,
-    select: false,
-   // validate: [validator.is, 'Please provide a valid email']
+    select: false
+    // validate: [validator.is, 'Please provide a valid email']
   },
   codePin:{
     required:[true, 'merci de saisir votre code pin'],
@@ -40,27 +40,25 @@ const userSchema = new mongoose.Schema({
       validator: function(el) {
         return el.toString().length === 4
       },
-      message:'votre numero doit etre égal a 4 characters'
+      message:'Votre numéro doit être égal a 4 caractères'
         
     }
   },
-  phoneNumber:{
-    type:Number,
-    required:[true, 'Veuillez saisir votre numero telephone'],
-    minlength:8,
-    validate : {
+  phoneNumber: {
+    type: Number,
+    required: [true, 'Veuillez saisir votre numero telephone'],
+    minlength: 8,
+    validate: {
       validator: function(el) {
-        return el.toString().length >8
+        return el.toString().length > 8;
       },
-      message:'votre numero doit etre au minimum 10 characters'
-        
+      message: 'votre numero doit etre au minimum 10 characters'
     }
-
   },
 
   passwordConfirm: {
     type: String,
-     required: [true, 'merci de confirmer votre  mot de passe '],
+    required: [true, 'merci de confirmer votre  mot de passe '],
     validate: {
       // This only works on CREATE and SAVE!!!
       validator: function(el) {
@@ -74,7 +72,7 @@ const userSchema = new mongoose.Schema({
   passwordResetExpires: Date,
   active: {
     type: Boolean,
-    default: true,
+    default: true
   }
 });
 

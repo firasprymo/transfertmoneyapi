@@ -8,8 +8,8 @@ const Email = require('./../utils/email');
 const bcrypt = require('bcryptjs');
 const { token } = require('morgan');
 
-
-const client = require('twilio')(  process.env.TWILIO_ACCOUNT_SID,
+const client = require('twilio')(
+  process.env.TWILIO_ACCOUNT_SID,
   process.env.TWILIO_AUTH_TOKEN
 );
 
@@ -18,8 +18,6 @@ const signToken = id => {
     expiresIn: process.env.JWT_EXPIRES_IN
   });
 };
-
-
 
 //send code with SMS phone
 const SendSMS = catchAsync(async (user, token, req, res, next) => {
@@ -34,30 +32,28 @@ const SendSMS = catchAsync(async (user, token, req, res, next) => {
       to: `+${phoneNumber}`,
       channel: 'sms'
     });
-
 });
 
 //verifer le code envoyer SMS
-exports.VeriferCodeSMS = catchAsync(async(req, res, next) => {
+exports.VeriferCodeSMS = catchAsync(async (req, res, next) => {
   if (!req.body.phonenumber && !req.body.code) {
     return next(new AppError('Code de vérification invalide!', 400));
   }
- const verifercode= await client.verify
+  const verifercode = await client.verify
     .services(process.env.TWILIO_SERVICE_ID)
     .verificationChecks.create({
       to: `+${req.body.phonenumber}`,
       code: req.body.code
-    })
-    if(verifercode.status ==='approved') {
-      res.status(200).send({
-        message: 'User is Verified!!'
-      });
-    }else{
-      res.status(400).send({
-        message: 'User not Verified!!'
-      });
-    }
-
+    });
+  if (verifercode.status === 'approved') {
+    res.status(200).send({
+      message: 'User is Verified!!'
+    });
+  } else {
+    res.status(400).send({
+      message: 'User not Verified!!'
+    });
+  }
 });
 
 const createSendToken = (user, statusCode, res) => {
@@ -82,7 +78,6 @@ const createSendToken = (user, statusCode, res) => {
 };
 
 exports.signup = catchAsync(async (req, res, next) => {
- 
   if (!req.body)
     return next(new AppError('Veuillez remplir votre formulaire!', 400));
   const newUser = await User.create(req.body);
@@ -91,7 +86,7 @@ exports.signup = catchAsync(async (req, res, next) => {
   await new Email(newUser, url).sendWelcome();
 
   createSendToken(newUser, 201, res);
-  SendSMS(newUser)
+  SendSMS(newUser);
 });
 exports.login = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
@@ -109,7 +104,6 @@ exports.login = catchAsync(async (req, res, next) => {
 
   // 3) If everything ok, send token to client
   createSendToken(user, 200, res);
-
 });
 
 exports.logout = (req, res) => {
@@ -199,7 +193,6 @@ exports.isLoggedIn = async (req, res, next) => {
 
 exports.restrictTo = (...roles) => {
   return (req, res, next) => {
-   
     // roles ['admin', 'lead-guide']. role='user'
     if (!roles.includes(req.user.role)) {
       return next(
@@ -247,7 +240,7 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
 
 //dans la reset de password and code Pin
 
-exports.sendCodeVerification = catchAsync(async(req,res,next) =>{
+exports.sendCodeVerification = catchAsync(async (req, res, next) => {
   if (!req.body) {
     return next(new AppError('Numéro de téléphone invalide!', 400));
   }
@@ -258,16 +251,14 @@ exports.sendCodeVerification = catchAsync(async(req,res,next) =>{
       to: `+${req.body.phoneNumber}`,
       channel: 'sms'
     });
-   
-})
-
+});
 
 exports.resetPassword = catchAsync(async (req, res, next) => {
-  // 1) Get user based on the token 
+  // 1) Get user based on the token
   decryptToken = jwt.decode(req.query.token, process.env.JWT_SECRET);
- //filter if user exist or no
-  const user = await User.findOne({_id:decryptToken.id})
-  console.log(user)
+  //filter if user exist or no
+  const user = await User.findOne({ _id: decryptToken.id });
+  console.log(user);
   // 2) If token has not expired, and there is user, set the new password
   if (!user) {
     return next(new AppError('Token is invalid or has expired', 400));
@@ -283,23 +274,23 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   createSendToken(user, 200, res);
 });
 
-exports.restCodePin = catchAsync(async(req,res,next) =>{
-
-   // 1) Get user based on the token 
-   decryptToken = jwt.decode(req.query.token, process.env.JWT_SECRET);
-   //filter if user exist or no
-    var user = await User.findOne({_id:decryptToken.id}).select('+password')
-    if (!user || !(await user.correctPassword(req.body.password, user.password))) {
-      return next(new AppError('Token is invalid or Password', 401));
-    }
-    user.password = req.body.password;
-    user.passwordConfirm = req.body.password;
-    user.codePin = req.body.codePin;
-    await user.save();
-    createSendToken(user, 200, res);
- 
-   
-})
+exports.resetCodePin = catchAsync(async (req, res, next) => {
+  // 1) Get user based on the token
+  const decryptToken = jwt.decode(req.query.token, process.env.JWT_SECRET);
+  //filter if user exist or no
+  const user = await User.findOne({ _id: decryptToken.id }).select('+password');
+  if (
+    !user ||
+    !(await user.correctPassword(req.body.password, user.password))
+  ) {
+    return next(new AppError('Token is invalid or Password', 401));
+  }
+  user.password = req.body.password;
+  user.passwordConfirm = req.body.password;
+  user.codePin = req.body.codePin;
+  await user.save();
+  createSendToken(user, 200, res);
+});
 
 exports.updatePassword = catchAsync(async (req, res, next) => {
   // 1) Get user from collection
@@ -320,6 +311,4 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
   createSendToken(user, 200, req, res);
 });
 //login with code pin
-exports.loginCodePin = catchAsync(async(req,res,next) =>{
-  
-})
+exports.loginCodePin = catchAsync(async (req, res, next) => {});
