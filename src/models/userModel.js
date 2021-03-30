@@ -31,23 +31,23 @@ const userSchema = new mongoose.Schema({
     select: false
     // validate: [validator.is, 'Please provide a valid email']
   },
-  codePin:{
-    required:[true, 'merci de saisir votre code pin'],
-    type:Number,
-    minlength:4,
-    maxlength:4,
-    validate : {
+  codePin: {
+    required: [true, 'merci de saisir votre code pin'],
+    type: Number,
+    minlength: 4,
+    maxlength: 4,
+    validate: {
       validator: function(el) {
-        return el.toString().length === 4
+        return el.toString().length === 4;
       },
-      message:'Votre numéro doit être égal a 4 caractères'
-        
+      message: 'Votre numéro doit être égal a 4 caractères'
     }
   },
   phoneNumber: {
     type: Number,
     required: [true, 'Veuillez saisir votre numero telephone'],
     minlength: 8,
+    unique: true,
     validate: {
       validator: function(el) {
         return el.toString().length > 8;
@@ -72,7 +72,7 @@ const userSchema = new mongoose.Schema({
   passwordResetExpires: Date,
   active: {
     type: Boolean,
-    default: true
+    default: false
   }
 });
 
@@ -95,11 +95,11 @@ userSchema.pre('save', function(next) {
   next();
 });
 
-userSchema.pre(/^find/, function(next) {
-  // this points to the current query
-  this.find({ active: { $ne: false } });
-  next();
-});
+// userSchema.pre(/^find/, function(next) {
+//   // this points to the current query
+//   this.find({ active: { $ne: false } });
+//   next();
+// });
 
 userSchema.methods.correctPassword = async function(
   candidatePassword,
@@ -129,7 +129,6 @@ userSchema.methods.createPasswordResetToken = function() {
     .createHash('sha256')
     .update(resetToken)
     .digest('hex');
-
 
   this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
 

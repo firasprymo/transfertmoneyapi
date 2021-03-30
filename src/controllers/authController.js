@@ -45,6 +45,14 @@ exports.VeriferCodeSMS = catchAsync(async (req, res, next) => {
       to: `+${req.body.phonenumber}`,
       code: req.body.code
     });
+  const user = await User.findOneAndUpdate(
+    { phoneNumber: req.body.phonenumber },
+    { active: true }
+  );
+  // console.log(user);
+  // user.active = true;
+
+  console.log('user2', user);
   if (verifercode.status === 'approved') {
     res.status(200).send({
       message: 'User is Verified!!'
@@ -88,6 +96,7 @@ exports.signup = catchAsync(async (req, res, next) => {
   createSendToken(newUser, 201, res);
   SendSMS(newUser);
 });
+
 exports.login = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
 
@@ -97,6 +106,9 @@ exports.login = catchAsync(async (req, res, next) => {
   }
   // 2) Check if user exists && password is correct
   const user = await User.findOne({ email }).select('+password');
+  if (!user.active) {
+    return next(new AppError("Vous n'avez pas les droits d'accés!", 400));
+  }
 
   if (!user || !(await user.correctPassword(password, user.password))) {
     return next(new AppError('Incorrect email or password', 401));
@@ -206,21 +218,33 @@ exports.restrictTo = (...roles) => {
 
 exports.forgotPassword = catchAsync(async (req, res, next) => {
   // 1) Get user based on POSTed email
-  const user = await User.findOne({ email: req.body.email });
+
+  const SMSCode = await client.verify
+    .services(process.env.TWILIO_SERVICE_ID)
+    .verifications.create({
+      locale: 'fr',
+      to: `+${req.body.phonenumber}`,
+      channel: 'sms'
+    });
+
+  const user = await User.findOne({ phoneNumber: req.body.phonenumber });
   if (!user) {
-    return next(new AppError('There is no user with email address.', 404));
+    return next(
+      new AppError(
+        "Il n'y a aucun utilisateur avec ce numéro de téléphone",
+        404
+      )
+    );
   }
 
-  // 2) Generate the random reset token
-  const resetToken = user.createPasswordResetToken();
   await user.save({ validateBeforeSave: false });
 
   // 3) Send it to user's email
   try {
-    const resetURL = `${req.protocol}://${req.get(
-      'host'
-    )}/api/v1/users/resetPassword/${resetToken}`;
-    await new Email(user, resetURL).sendPasswordReset();
+    // const resetURL = `${req.protocol}://${req.get(
+    //   'host'
+    // )}/api/v1/users/resetPassword/${resetToken}`;
+    // await new Email(user, resetURL).sendPasswordReset();
 
     res.status(200).json({
       status: 'success',
@@ -237,31 +261,21 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
     );
   }
 });
-
-//dans la reset de password and code Pin
-
-exports.sendCodeVerification = catchAsync(async (req, res, next) => {
-  if (!req.body) {
-    return next(new AppError('Numéro de téléphone invalide!', 400));
-  }
-  const SMSCode = await client.verify
-    .services(process.env.TWILIO_SERVICE_ID)
-    .verifications.create({
-      locale: 'fr',
-      to: `+${req.body.phoneNumber}`,
-      channel: 'sms'
-    });
-});
-
 exports.resetPassword = catchAsync(async (req, res, next) => {
   // 1) Get user based on the token
-  decryptToken = jwt.decode(req.query.token, process.env.JWT_SECRET);
+  console.log(req.body);
+  // const decryptToken = jwt.decode(req.body.token, process.env.JWT_SECRET);
+  // console.log(decryptToken);
+  if (!req.body.token) {
+    return next(new AppError("Le jeton n'est pas valide ou a expiré", 400));
+  }
+
   //filter if user exist or no
-  const user = await User.findOne({ _id: decryptToken.id });
+  const user = await User.findOne({ phoneNumber: req.body.phonenumber });
   console.log(user);
   // 2) If token has not expired, and there is user, set the new password
   if (!user) {
-    return next(new AppError('Token is invalid or has expired', 400));
+    return next(new AppError("Le jeton n'est pas valide ou a expiré", 400));
   }
   user.password = req.body.password;
   user.passwordConfirm = req.body.passwordConfirm;
@@ -273,12 +287,33 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   // 4) Log the user in, send JWT
   createSendToken(user, 200, res);
 });
+//dans la reset de password and code Pin
+
+exports.sendCodeVerification = catchAsync(async (req, res, next) => {
+  console.log(req.body);
+  if (!req.body) {
+    return next(new AppError('Numéro de téléphone invalide!', 400));
+  }
+  const SMSCode = await client.verify
+    .services(process.env.TWILIO_SERVICE_ID)
+    .verifications.create({
+      locale: 'fr',
+      to: `+${req.body.phonenumber}`,
+      channel: 'sms'
+    });
+  res.status(200).json({ status: 'success' });
+});
 
 exports.resetCodePin = catchAsync(async (req, res, next) => {
   // 1) Get user based on the token
-  const decryptToken = jwt.decode(req.query.token, process.env.JWT_SECRET);
+  // const decryptToken = jwt.decode(req.body.token, process.env.JWT_SECRET);
   //filter if user exist or no
-  const user = await User.findOne({ _id: decryptToken.id }).select('+password');
+  if (!req.body.token) {
+    return next(new AppError("Le jeton n'est pas valide ou a expiré", 401));
+  }
+  const user = await User.findOne({ phoneNumber: req.body.phonenumber }).select(
+    '+password'
+  );
   if (
     !user ||
     !(await user.correctPassword(req.body.password, user.password))

@@ -5,8 +5,8 @@ const authController = require('./../controllers/authController');
 const router = express.Router();
 
 router.post('/signup', authController.signup);
-router.get('/veriferCodeSMS',authController.VeriferCodeSMS);
-router.get('/envoyerCodeSMS',authController.sendCodeVerification);
+router.post('/veriferCodeSMS',authController.VeriferCodeSMS);
+router.post('/envoyerCodeSMS',authController.sendCodeVerification);
 router.post('/login', authController.login);
 router.get('/logout', authController.logout);
 
