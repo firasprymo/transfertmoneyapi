@@ -13,13 +13,16 @@ router.get('/logout', authController.logout);
 router.post('/forgotPassword', authController.forgotPassword);
 router.patch('/resetPassword', authController.resetPassword);
 
-router.patch('/resetCodePin',authController.resetCodePin);
+
 
 // Protect all routes after this middleware
 router.use(authController.protect);
 
+router.post('/liginCodePin', authController.loginCodePin);
 router.patch('/updateMyPassword', authController.updatePassword);
 router.get('/me', userController.getMe, userController.getUser);
+
+
 router.patch(
   '/updateMe',
   userController.uploadUserPhoto,

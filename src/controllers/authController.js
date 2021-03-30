@@ -20,7 +20,7 @@ const signToken = id => {
 };
 
 //send code with SMS phone
-const SendSMS = catchAsync(async (user, token, req, res, next) => {
+const SendSMS = catchAsync(async (user, req, res, next) => {
   const phoneNumber = user.phoneNumber;
   if (!phoneNumber) {
     return next(new AppError('Numéro de téléphone invalide!', 400));
@@ -32,6 +32,8 @@ const SendSMS = catchAsync(async (user, token, req, res, next) => {
       to: `+${phoneNumber}`,
       channel: 'sms'
     });
+  
+  
 });
 
 //verifer le code envoyer SMS
@@ -49,10 +51,10 @@ exports.VeriferCodeSMS = catchAsync(async (req, res, next) => {
     { phoneNumber: req.body.phonenumber },
     { active: true }
   );
-  // console.log(user);
+ 
   // user.active = true;
 
-  console.log('user2', user);
+
   if (verifercode.status === 'approved') {
     res.status(200).send({
       message: 'User is Verified!!'
@@ -66,14 +68,14 @@ exports.VeriferCodeSMS = catchAsync(async (req, res, next) => {
 
 const createSendToken = (user, statusCode, res) => {
   const token = signToken(user._id);
-  // const cookieOptions = {
-  //   expires: new Date(
-  //     Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
-  //   ),
-  //   httpOnly: true
-  // };
-  // if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
-  // res.cookie('jwt', token, cookieOptions);
+  const cookieOptions = {
+    expires: new Date(
+      Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
+    ),
+    httpOnly: true
+  };
+  if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
+  res.cookie('jwt', token, cookieOptions);
   // Remove password from output
   user.password = undefined;
   res.status(statusCode).json({
@@ -263,16 +265,12 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
 });
 exports.resetPassword = catchAsync(async (req, res, next) => {
   // 1) Get user based on the token
-  console.log(req.body);
-  // const decryptToken = jwt.decode(req.body.token, process.env.JWT_SECRET);
-  // console.log(decryptToken);
   if (!req.body.token) {
     return next(new AppError("Le jeton n'est pas valide ou a expiré", 400));
   }
 
   //filter if user exist or no
   const user = await User.findOne({ phoneNumber: req.body.phonenumber });
-  console.log(user);
   // 2) If token has not expired, and there is user, set the new password
   if (!user) {
     return next(new AppError("Le jeton n'est pas valide ou a expiré", 400));
@@ -290,7 +288,6 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
 //dans la reset de password and code Pin
 
 exports.sendCodeVerification = catchAsync(async (req, res, next) => {
-  console.log(req.body);
   if (!req.body) {
     return next(new AppError('Numéro de téléphone invalide!', 400));
   }
@@ -306,11 +303,10 @@ exports.sendCodeVerification = catchAsync(async (req, res, next) => {
 
 exports.resetCodePin = catchAsync(async (req, res, next) => {
   // 1) Get user based on the token
-  // const decryptToken = jwt.decode(req.body.token, process.env.JWT_SECRET);
   //filter if user exist or no
-  if (!req.body.token) {
-    return next(new AppError("Le jeton n'est pas valide ou a expiré", 401));
-  }
+  // if (!req.body.token) {
+  //   return next(new AppError("Le jeton n'est pas valide ou a expiré", 401));
+  // }
   const user = await User.findOne({ phoneNumber: req.body.phonenumber }).select(
     '+password'
   );
@@ -318,7 +314,7 @@ exports.resetCodePin = catchAsync(async (req, res, next) => {
     !user ||
     !(await user.correctPassword(req.body.password, user.password))
   ) {
-    return next(new AppError('Token is invalid or Password', 401));
+    return next(new AppError('Password is invalid ', 401));
   }
   user.password = req.body.password;
   user.passwordConfirm = req.body.password;
@@ -346,4 +342,22 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
   createSendToken(user, 200, req, res);
 });
 //login with code pin
-exports.loginCodePin = catchAsync(async (req, res, next) => {});
+exports.loginCodePin = catchAsync(async (req, res, next) => {
+  const { codePin } = req.body;
+
+  // 1) Check if email and password exist
+  if (!codePin) {
+    return next(new AppError('Please provide  codePin!', 400));
+  }
+  // 2) Check if user exists && password is correct
+  const user = await User.findOne({ codePin }).select('+password');
+  if (!user || !(user.codePin === codePin)) {
+    return next(new AppError('Incorrect codePin', 401));
+  }
+  if (!user.active) {
+    return next(new AppError("Vous n'avez pas les droits d'accés!", 400));
+  }
+  // 3) If everything ok, send token to client
+  createSendToken(user, 200, res);
+
+});
