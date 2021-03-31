@@ -18,7 +18,7 @@ router.patch('/resetPassword', authController.resetPassword);
 // Protect all routes after this middleware
 router.use(authController.protect);
 
-router.post('/liginCodePin', authController.loginCodePin);
+router.post('/loginCodePin', authController.loginCodePin);
 router.patch('/updateMyPassword', authController.updatePassword);
 router.get('/me', userController.getMe, userController.getUser);
 
