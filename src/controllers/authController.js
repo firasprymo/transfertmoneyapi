@@ -5,7 +5,6 @@ const User = require('./../models/userModel');
 const catchAsync = require('./../utils/catchAsync');
 const AppError = require('./../utils/appError');
 const Email = require('./../utils/email');
-const bcrypt = require('bcryptjs');
 const { token } = require('morgan');
 
 const client = require('twilio')(
@@ -32,17 +31,14 @@ const SendSMS = catchAsync(async (user, req, res, next) => {
       to: `+${phoneNumber}`,
       channel: 'sms'
     });
-  
-    if (SMS.status == 429) {
-      return next(new AppError('Essayer Plus Tard', 400));
-    }
+
   
 });
 
 //verifer le code envoyer SMS
 exports.VeriferCodeSMS = catchAsync(async (req, res, next) => {
   if (!req.body.phonenumber && !req.body.code) {
-    return next(new AppError('Code de vérification invalide!', 400));
+    return next(new AppError('Code de vérification invalide ou expireie!', 400));
   }
   const verifercode = await client.verify
     .services(process.env.TWILIO_SERVICE_ID)
@@ -54,10 +50,8 @@ exports.VeriferCodeSMS = catchAsync(async (req, res, next) => {
     { phoneNumber: req.body.phonenumber },
     { active: true }
   );
- 
+
   // user.active = true;
-
-
   if (verifercode.status === 'approved') {
     res.status(200).send({
       message: 'User is Verified!!'
@@ -301,7 +295,7 @@ exports.sendCodeVerification = catchAsync(async (req, res, next) => {
       to: `+${req.body.phonenumber}`,
       channel: 'sms'
     });
-    
+
   res.status(200).json({ status: 'success' });
 });
 

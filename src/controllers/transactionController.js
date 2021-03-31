@@ -2,6 +2,7 @@ const AppError = require('../utils/appError');
 var axios = require('axios').default;
 const catchAsync = require('../utils/catchAsync');
 const Transaction = require('../models/transactionModal');
+
 const client = require('twilio')(
   process.env.ACCOUNT_SID_TWILIO,
   process.env.AUTH_TOKEN_TWILIO
@@ -21,7 +22,7 @@ exports.GenerateUUID = catchAsync(async (req, res, next) => {
   await GetApiKey(X_Reference_id, req, res, next);
 });
 //generate api user
-const Generate_Api_User = catchAsync(async (X_Reference_id, next) => {
+const Generate_Api_User = async (X_Reference_id, next) => {
   var options = {
     method: 'POST',
     data: {
@@ -30,7 +31,7 @@ const Generate_Api_User = catchAsync(async (X_Reference_id, next) => {
     url: process.env.URL_MOMO_API_USER + 'apiuser',
     headers: {
       'X-Reference-Id': X_Reference_id.data,
-      'Ocp-Apim-Subscription-Key': process.env.Ocp_Apim_Subscription_KEY_MOMO,
+      'Ocp-Apim-Subscription-Key': process.env.MOMO_Ocp_Apim_Subscription_KEY,
       'Content-Type': 'application/json'
     }
   };
@@ -38,14 +39,14 @@ const Generate_Api_User = catchAsync(async (X_Reference_id, next) => {
   if (!Api_User) {
     return next(new AppError('Api user not created', 400));
   }
-});
+};
 //created user
-const CreatedUser = catchAsync(async (X_Reference_id, next) => {
+const CreatedUser = async (X_Reference_id, next) => {
   var options = {
     method: 'GET',
     url: process.env.URL_MOMO_API_USER + 'apiuser' + '/' + X_Reference_id.data,
     headers: {
-      'Ocp-Apim-Subscription-Key': process.env.Ocp_Apim_Subscription_KEY_MOMO
+      'Ocp-Apim-Subscription-Key': process.env.MOMO_Ocp_Apim_Subscription_KEY
     }
   };
   const Create_User = await axios.request(options);
@@ -54,9 +55,9 @@ const CreatedUser = catchAsync(async (X_Reference_id, next) => {
       new AppError('Reference id not found or closed in sandbox', 404)
     );
   }
-});
+};
 //get api key
-const GetApiKey = catchAsync(async (X_Reference_id, req, res, next) => {
+const GetApiKey = async (X_Reference_id, req, res, next) => {
   var options = {
     method: 'POST',
     url:
@@ -66,7 +67,7 @@ const GetApiKey = catchAsync(async (X_Reference_id, req, res, next) => {
       X_Reference_id.data +
       '/apikey',
     headers: {
-      'Ocp-Apim-Subscription-Key': process.env.Ocp_Apim_Subscription_KEY_MOMO
+      'Ocp-Apim-Subscription-Key': process.env.MOMO_Ocp_Apim_Subscription_KEY
     }
   };
   const Api_Key = await axios.request(options);
@@ -85,31 +86,40 @@ const GetApiKey = catchAsync(async (X_Reference_id, req, res, next) => {
   const token = Buffer.from(`${username}:${password}`, 'utf8').toString(
     'base64'
   );
+  
   var options2 = {
     method: 'POST',
     url: process.env.URL_MOMO_CREATE_COLLECTION,
 
     headers: {
-      'Ocp-Apim-Subscription-Key': process.env.Ocp_Apim_Subscription_KEY_MOMO,
+      'Ocp-Apim-Subscription-Key': process.env.MOMO_Ocp_Apim_Subscription_KEY,
       Authorization: `Basic ${token}`
     }
   };
-  const Token = await axios.request(options2);
+   const Token = await axios.request(options2);  
+  const cookieOptions = {
+    expires: new Date(
+      Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
+    ),
+    httpOnly: true
+  };
+  if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
+   res.cookie('Token', Token.data.access_token, cookieOptions);
   if (!Token) {
     return next(new AppError('You are not authorized', 401));
   }
   await trensferArgent(Token, X_Reference_id, req, res, next);
-});
+};
 
-const trensferArgent = catchAsync(
-  async (Token, X_Reference_id, req, res, next) => {
+const trensferArgent = 
+ async (Token, X_Reference_id, req, res, next) => {
     var options = {
       method: 'POST',
       headers: {
         'X-Reference-Id': X_Reference_id.data,
-        'X-Target-Environment': process.env.X_Targe_Environement_MOMO,
+        'X-Target-Environment': process.env.MOMO_X_Targe_Environement,
         'Content-Type': 'application/json',
-        'Ocp-Apim-Subscription-Key': process.env.Disbursements_KEY_MOMO,
+        'Ocp-Apim-Subscription-Key': process.env.MOMO_Disbursements_KEY,
         Authorization: `Bearer ${Token.data.access_token}`
       },
       url: process.env.URL_MOMO_TRENSACTION,
@@ -120,42 +130,33 @@ const trensferArgent = catchAsync(
     if (!trensfer) {
       return next(new AppError('You are not authorized', 401));
     }
-
     if (trensfer.status === 202) {
       res.send({ message: 'transfert effectué avec succès' });
     } else {
       res.send({ message: 'echec de transfert' });
     }
   }
-);
+;
 
-//send code with SMS phone
-// exports.SendSMS = ((req,res,next) => {
-//     if (req.query.phonenumber) {
-//         client
-//             .verify
-//             .services(process.env.SERVICE_ID_TWILIO)
-//             .verifications
-//             .create({
-//                 to: `+${req.query.phonenumber}`,
-//                 channel: req.query.channel === 'call' ? 'call' : 'sms'
-//             })
-//             .then(data => {
 
-//                 res.status(200).send({
-//                     message: "Verification is sent!!",
-//                     phonenumber: req.query.phonenumber,
-//                     data
-//                 })
-//             })
-//     } else {
-//         res.status(400).send({
-//             message: "Wrong phone number :(",
-//             phonenumber: req.query.phonenumber,
-//             data
-//         })
-//     }
+exports.Solde = catchAsync(async (req, res, next) => {
 
-// })
+  var options = {
+    method:'GET',
+    url:'https://sandbox.momodeveloper.mtn.com/collection/v1_0/account/balance',
+    headers: {
+      'X-Target-Environment':process.env.MOMO_X_Targe_Environement,
+      'Ocp-Apim-Subscription-Key':process.env.MOMO_Disbursements_KEY
+    }
+    
+  }
 
-//verification code envoyer par SMS
+  const solde = await axios.request(options)
+  if(!solde) {
+    return next(new AppError('You are not authorized', 401));
+  }
+  console.log(solde,"solddddddddddddddd")
+
+})
+
+

@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
-
 const transactionSchema = new mongoose.Schema({
   amount: {
     type: String,
@@ -13,7 +12,6 @@ const transactionSchema = new mongoose.Schema({
   externalId: {
     type: Number,
     require: [true, 'merci de saisir votre telephone'],
-    unique: true,
     maxlength: 8,
     minlength: 8,
     validate: {
@@ -32,7 +30,6 @@ const transactionSchema = new mongoose.Schema({
     partyId: {
       type: Number,
       require: [true],
-      unique: true,
       maxlength: 8,
       minlength: 8,
       validate: {
@@ -57,14 +54,14 @@ const transactionSchema = new mongoose.Schema({
   },
   user: {
     type: mongoose.Schema.ObjectId,
-    ref: 'User',
-    required: [true, 'Review must belong to a user']
+    ref: 'user',
+    required: [true, 'trensaction must belong to a user']
   }
 });
 transactionSchema.pre(/^find/, function(next) {
   this.populate({
-    path: 'user',
-    select: 'name '
+    path: 'User',
+    select: 'name'
   });
   next();
 });
