@@ -5,7 +5,6 @@ const User = require('./../models/userModel');
 const catchAsync = require('./../utils/catchAsync');
 const AppError = require('./../utils/appError');
 const Email = require('./../utils/email');
-const bcrypt = require('bcryptjs');
 const { token } = require('morgan');
 
 const client = require('twilio')(
@@ -20,7 +19,7 @@ const signToken = id => {
 };
 
 //send code with SMS phone
-const SendSMS = catchAsync(async (user, token, req, res, next) => {
+const SendSMS = catchAsync(async (user, req, res, next) => {
   const phoneNumber = user.phoneNumber;
   if (!phoneNumber) {
     return next(new AppError('Numéro de téléphone invalide!', 400));
@@ -32,12 +31,14 @@ const SendSMS = catchAsync(async (user, token, req, res, next) => {
       to: `+${phoneNumber}`,
       channel: 'sms'
     });
+
+  
 });
 
 //verifer le code envoyer SMS
 exports.VeriferCodeSMS = catchAsync(async (req, res, next) => {
   if (!req.body.phonenumber && !req.body.code) {
-    return next(new AppError('Code de vérification invalide!', 400));
+    return next(new AppError('Code de vérification invalide ou expireie!', 400));
   }
   const verifercode = await client.verify
     .services(process.env.TWILIO_SERVICE_ID)
@@ -49,10 +50,8 @@ exports.VeriferCodeSMS = catchAsync(async (req, res, next) => {
     { phoneNumber: req.body.phonenumber },
     { active: true }
   );
-  // console.log(user);
-  // user.active = true;
 
-  console.log('user2', user);
+  // user.active = true;
   if (verifercode.status === 'approved') {
     res.status(200).send({
       message: 'User is Verified!!'
@@ -263,16 +262,12 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
 });
 exports.resetPassword = catchAsync(async (req, res, next) => {
   // 1) Get user based on the token
-  console.log(req.body);
-  // const decryptToken = jwt.decode(req.body.token, process.env.JWT_SECRET);
-  // console.log(decryptToken);
   if (!req.body.token) {
     return next(new AppError("Le jeton n'est pas valide ou a expiré", 400));
   }
 
   //filter if user exist or no
   const user = await User.findOne({ phoneNumber: req.body.phonenumber });
-  console.log(user);
   // 2) If token has not expired, and there is user, set the new password
   if (!user) {
     return next(new AppError("Le jeton n'est pas valide ou a expiré", 400));
@@ -290,7 +285,6 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
 //dans la reset de password and code Pin
 
 exports.sendCodeVerification = catchAsync(async (req, res, next) => {
-  console.log(req.body);
   if (!req.body) {
     return next(new AppError('Numéro de téléphone invalide!', 400));
   }
@@ -301,16 +295,16 @@ exports.sendCodeVerification = catchAsync(async (req, res, next) => {
       to: `+${req.body.phonenumber}`,
       channel: 'sms'
     });
+
   res.status(200).json({ status: 'success' });
 });
 
 exports.resetCodePin = catchAsync(async (req, res, next) => {
   // 1) Get user based on the token
-  // const decryptToken = jwt.decode(req.body.token, process.env.JWT_SECRET);
   //filter if user exist or no
-  if (!req.body.token) {
-    return next(new AppError("Le jeton n'est pas valide ou a expiré", 401));
-  }
+  // if (!req.body.token) {
+  //   return next(new AppError("Le jeton n'est pas valide ou a expiré", 401));
+  // }
   const user = await User.findOne({ phoneNumber: req.body.phonenumber }).select(
     '+password'
   );
@@ -318,7 +312,7 @@ exports.resetCodePin = catchAsync(async (req, res, next) => {
     !user ||
     !(await user.correctPassword(req.body.password, user.password))
   ) {
-    return next(new AppError('Token is invalid or Password', 401));
+    return next(new AppError('Password is invalid ', 401));
   }
   user.password = req.body.password;
   user.passwordConfirm = req.body.password;
@@ -346,4 +340,22 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
   createSendToken(user, 200, req, res);
 });
 //login with code pin
-exports.loginCodePin = catchAsync(async (req, res, next) => {});
+exports.loginCodePin = catchAsync(async (req, res, next) => {
+  const { codePin } = req.body;
+
+  // 1) Check if email and password exist
+  if (!codePin) {
+    return next(new AppError('Please provide  codePin!', 400));
+  }
+  // 2) Check if user exists && password is correct
+  const user = await User.findOne({ codePin }).select('+password');
+  if (!user || !(user.codePin === codePin)) {
+    return next(new AppError('Incorrect codePin', 401));
+  }
+  if (!user.active) {
+    return next(new AppError("Vous n'avez pas les droits d'accés!", 400));
+  }
+  // 3) If everything ok, send token to client
+  createSendToken(user, 200, res);
+
+});
