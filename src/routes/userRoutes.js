@@ -5,15 +5,13 @@ const authController = require('./../controllers/authController');
 const router = express.Router();
 
 router.post('/signup', authController.signup);
-router.post('/veriferCodeSMS',authController.VeriferCodeSMS);
-router.post('/envoyerCodeSMS',authController.sendCodeVerification);
+router.post('/veriferCodeSMS', authController.VeriferCodeSMS);
+router.post('/envoyerCodeSMS', authController.sendCodeVerification);
 router.post('/login', authController.login);
 router.get('/logout', authController.logout);
-
+router.patch('/resetCodePin',authController.resetCodePin);
 router.post('/forgotPassword', authController.forgotPassword);
 router.patch('/resetPassword', authController.resetPassword);
-
-
 
 // Protect all routes after this middleware
 router.use(authController.protect);
@@ -21,7 +19,6 @@ router.use(authController.protect);
 router.post('/loginCodePin', authController.loginCodePin);
 router.patch('/updateMyPassword', authController.updatePassword);
 router.get('/me', userController.getMe, userController.getUser);
-
 
 router.patch(
   '/updateMe',

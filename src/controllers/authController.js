@@ -31,14 +31,12 @@ const SendSMS = catchAsync(async (user, req, res, next) => {
       to: `+${phoneNumber}`,
       channel: 'sms'
     });
-
-  
 });
 
 //verifer le code envoyer SMS
 exports.VeriferCodeSMS = catchAsync(async (req, res, next) => {
   if (!req.body.phonenumber && !req.body.code) {
-    return next(new AppError('Code de vérification invalide ou expireie!', 400));
+    return next(new AppError('Code de vérification invalide ou expiré!', 400));
   }
   const verifercode = await client.verify
     .services(process.env.TWILIO_SERVICE_ID)
@@ -65,14 +63,6 @@ exports.VeriferCodeSMS = catchAsync(async (req, res, next) => {
 
 const createSendToken = (user, statusCode, res) => {
   const token = signToken(user._id);
-  // const cookieOptions = {
-  //   expires: new Date(
-  //     Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
-  //   ),
-  //   httpOnly: true
-  // };
-  // if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
-  // res.cookie('jwt', token, cookieOptions);
   // Remove password from output
   user.password = undefined;
   res.status(statusCode).json({
@@ -134,6 +124,7 @@ exports.protect = catchAsync(async (req, res, next) => {
   ) {
     token = req.headers.authorization.split(' ')[1];
   } 
+
   if (!token) {
     return next(
       new AppError('You are not logged in! Please log in to get access.', 401)
@@ -354,5 +345,4 @@ exports.loginCodePin = catchAsync(async (req, res, next) => {
   }
   // 3) If everything ok, send token to client
   createSendToken(user, 200, res);
-
 });

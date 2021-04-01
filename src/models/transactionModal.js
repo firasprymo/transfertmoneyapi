@@ -3,22 +3,22 @@ const validator = require('validator');
 const transactionSchema = new mongoose.Schema({
   amount: {
     type: String,
-    require: [true, 'merci de saisir  le montent .']
+    require: [true, 'Merci de saisir  le montent .']
   },
   currency: {
     type: String,
-    require: [true, 'merci de saisir votre currency']
+    require: [true, 'Merci de saisir votre currency']
   },
   externalId: {
     type: Number,
-    require: [true, 'merci de saisir votre telephone'],
+    require: [true, 'Merci de saisir votre numéro de téléphone'],
     maxlength: 8,
     minlength: 8,
     validate: {
       validator: function(el) {
         return el.toString().length === 8;
       },
-      message: 'le numéro doit etre 8 caractères'
+      message: 'Le numéro doit être plus que 8 caractères'
     }
   },
   payee: {
@@ -36,7 +36,7 @@ const transactionSchema = new mongoose.Schema({
         validator: function(el) {
           return el.toString().length === 8;
         },
-        message: 'le numéro doit etre 8 caractères'
+        message: 'le numéro doit être 8 caractères'
       }
     }
   },
@@ -52,9 +52,11 @@ const transactionSchema = new mongoose.Schema({
     type: Date,
     default: Date.now()
   },
-  user:{
-    type:String,
-    required:true
+
+  user: {
+    type: mongoose.Schema.ObjectId,
+    ref: 'User',
+    required: [true, 'La transaction doit appartenir à un utilisateur']
   }
   // user: {
   //   type: mongoose.Schema.ObjectId,
