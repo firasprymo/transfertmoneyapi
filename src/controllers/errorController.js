@@ -8,8 +8,8 @@ const handleCastErrorDB = err => {
 const handleDuplicateFieldsDB = err => {
   const value = err.errmsg.match(/(["'])(\\?.)*?\1/)[0];
 
-  const message = `Duplicate field value: ${value}. Please use another value!`;
-  return new AppError(message, 400);
+  const error = `Duplicate field value: ${value}. Please use another value!`;
+  return new AppError(error, 410);
 };
 
 const handleValidationErrorDB = err => {
@@ -30,7 +30,7 @@ const sendErrorDev = (err, req, res) => {
   if (req.originalUrl.startsWith('/api')) {
     return res.status(err.statusCode).json({
       status: err.status,
-      error: err,
+      errors: err,
       message: err.message,
       stack: err.stack
     });
