@@ -2,8 +2,8 @@ const AppError = require('../utils/appError');
 var axios = require('axios').default;
 const catchAsync = require('../utils/catchAsync');
 const Transaction = require('../models/transactionModal');
-
-
+const Notification = require('../models/notificationModel')
+const User = require('../models/userModel')
 //generate ressource id (UUID)
 exports.ConsulterSolde = catchAsync(async (req, res, next) => {
   var options = {
@@ -81,7 +81,7 @@ const GetApiKey = async (X_Reference_id, req, res, next) => {
   const token = Buffer.from(`${username}:${password}`, 'utf8').toString(
     'base64'
   );
-  
+
   var options2 = {
     method: 'POST',
     url: process.env.URL_MOMO_CREATE_COLLECTION,
@@ -91,20 +91,20 @@ const GetApiKey = async (X_Reference_id, req, res, next) => {
       Authorization: `Basic ${token}`
     }
   };
-   const  Token = await axios.request(options2);
+  const Token = await axios.request(options2);
   // return Token
   if (!Token) {
     return next(new AppError('You are not authorized', 401));
   }
- // console.log(req.query.id)
+  // console.log(req.query.id)
   //if(req.query.id == 1){
-    await Solde(Token,req,res,next)
- //   console.log('ok')
- // }
+  await Solde(Token, req, res, next)
+  //   console.log('ok')
+  // }
   //else if(req.query.id == 2) {
-   //await trensferArgent(Token,X_Reference_id,req,res,next)
- 
- 
+  //await trensferArgent(Token,X_Reference_id,req,res,next)
+
+
 };
 const GetAPITrensfert = async (X_Reference_id, req, res, next) => {
   var options = {
@@ -135,7 +135,7 @@ const GetAPITrensfert = async (X_Reference_id, req, res, next) => {
   const token = Buffer.from(`${username}:${password}`, 'utf8').toString(
     'base64'
   );
-  
+
   var options2 = {
     method: 'POST',
     url: process.env.URL_MOMO_CREATE_COLLECTION,
@@ -145,15 +145,15 @@ const GetAPITrensfert = async (X_Reference_id, req, res, next) => {
       Authorization: `Basic ${token}`
     }
   };
-   const  Token = await axios.request(options2);
+  const Token = await axios.request(options2);
   // return Token
   if (!Token) {
     return next(new AppError('You are not authorized', 401));
   }
- 
-   await trensferArgent(Token,X_Reference_id,req,res,next)
- 
- 
+
+  await trensferArgent(Token, X_Reference_id, req, res, next)
+
+
 };
 exports.trensferArgent = catchAsync(async (req, res, next) => {
   var options = {
@@ -166,8 +166,8 @@ exports.trensferArgent = catchAsync(async (req, res, next) => {
   await CreatedUser(X_Reference_id, next);
   await GetAPITrensfert(X_Reference_id, req, res, next);
 });
-const trensferArgent = 
- async (Token,X_Reference_id, req, res, next) => {
+const trensferArgent =
+  async (Token, X_Reference_id, req, res, next) => {
 
     var options = {
       method: 'POST',
@@ -192,54 +192,53 @@ const trensferArgent =
       res.send({ message: 'echec de transfert' });
     }
   }
-;
+  ;
 
 
-const Solde = async (Token,req, res, next) => {
-  
- var options = {
-    method:'GET',
-    url:'https://sandbox.momodeveloper.mtn.com/collection/v1_0/account/balance',
+const Solde = async (Token, req, res, next) => {
+
+  var options = {
+    method: 'GET',
+    url: 'https://sandbox.momodeveloper.mtn.com/collection/v1_0/account/balance',
     headers: {
-      'X-Target-Environment':process.env.MOMO_X_Targe_Environement,
-      'Ocp-Apim-Subscription-Key':process.env.MOMO_Ocp_Apim_Subscription_KEY,
+      'X-Target-Environment': process.env.MOMO_X_Targe_Environement,
+      'Ocp-Apim-Subscription-Key': process.env.MOMO_Ocp_Apim_Subscription_KEY,
       Authorization: `Bearer ${Token.data.access_token}`
     }
-    
+
   }
   const solde = await axios.request(options)
-    if(!solde) {
-      return next(new AppError('You are not authorized', 401));
-  
-    }
+  if (!solde) {
+    return next(new AppError('You are not authorized', 401));
+
+  }
   res.status(200).send({
-    data:solde.data
+    data: solde.data
   })
 
 };
 
 
 
-exports.SendNotification = catchAsync(async(req,res,next) =>{
-  var notification = {
-    'title':'Title Notification',
-    'text':'votre trensaction fait avec succes'
-}
-var fcm_tokens = [];
-var notification_body = {
-    'notification':notification,
-    'registration_ids':fcm_tokens
-}
-var options = {
-    methode:'POST',
-    url:process.env.NOTIFICATION_URL,
-    headers:{
-        Authorization:'key='+process.env.NOTIFICATION_TOKEN
+
+//send notification 
+exports.SendNotification = catchAsync(async (req, res, next) => {
+ // const user = req.user.id;
+  console.log(req.body)
+  var options = {
+    method: 'POST',
+    url:"https://onesignal.com/api/v1/notifications",
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Basic ${process.env.NOTIFICATION_TOKEN}`,
     },
-    data:JSON.stringify(notification_body),
-    'Content-Type': 'application/json',
-}
-const Notification = axios.request(options)
-console.log(notification)
+    data: req.body
+  };
+   var sendNotification = await axios.request(options)
+   req.body.userID = req.user.id 
+   await Notification.create(req.body)
+   res.status(200).send({
+    message: 'notification send'
+  });
 
 })

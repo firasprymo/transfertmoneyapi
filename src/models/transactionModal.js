@@ -64,13 +64,13 @@ const transactionSchema = new mongoose.Schema({
   //   required: [true, 'trensaction must belong to a user']
   // }
 });
-// transactionSchema.pre(/^find/, function(next) {
-//   this.populate({
-//     path: 'User',
-//     select: 'name'
-//   });
-//   next();
-// });
+transactionSchema.pre(/^find/, function(next) {
+  this.populate({
+    path: 'User',
+    select: 'name'
+  });
+  next();
+});
 const Transaction = mongoose.model('Transaction', transactionSchema);
 
 module.exports = Transaction;
