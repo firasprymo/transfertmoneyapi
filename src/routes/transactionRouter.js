@@ -6,7 +6,9 @@ const router = express.Router();
 router.use(authController.protect);
 router.post('/notification',transactionController.SendNotification)
 router.get('/solde',transactionController.ConsulterSolde)
-router.post('/transfertArgent', transactionController.trensferArgent);
+router.post('/transfertArgent', transactionController.transferArgent);
+router.get('/historiques', transactionController.getAllTransactions);
+router.get('/UserHistorique', transactionController.getUserHistorique);
 
 module.exports = router;
 

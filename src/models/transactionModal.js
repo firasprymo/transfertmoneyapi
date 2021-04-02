@@ -53,7 +53,7 @@ const transactionSchema = new mongoose.Schema({
     default: Date.now()
   },
 
-  user: {
+  users: {
     type: mongoose.Schema.ObjectId,
     ref: 'User',
     required: [true, 'La transaction doit appartenir à un utilisateur']

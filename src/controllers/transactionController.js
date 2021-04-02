@@ -4,19 +4,10 @@ const catchAsync = require('../utils/catchAsync');
 const Transaction = require('../models/transactionModal');
 const Notification = require('../models/notificationModel')
 const User = require('../models/userModel')
+const factory = require('./handlerFactory');
+const APIFeatures = require('./../utils/apiFeatures');
+// 1/ 
 //generate ressource id (UUID)
-exports.ConsulterSolde = catchAsync(async (req, res, next) => {
-  var options = {
-    method: 'GET',
-    url: process.env.URL_MOMO_UUID_REFERENCE_ID
-  };
-
-  const X_Reference_id = await axios.request(options);
-  await Generate_Api_User(X_Reference_id, next);
-  await CreatedUser(X_Reference_id, next);
-  await GetApiKey(X_Reference_id, req, res, next);
-});
-//generate api user
 const Generate_Api_User = async (X_Reference_id, next) => {
   var options = {
     method: 'POST',
@@ -35,6 +26,20 @@ const Generate_Api_User = async (X_Reference_id, next) => {
     return next(new AppError('Api user not created', 400));
   }
 };
+exports.ConsulterSolde = catchAsync(async (req, res, next) => {
+  var options = {
+    method: 'GET',
+    url: process.env.URL_MOMO_UUID_REFERENCE_ID
+  };
+
+  const X_Reference_id = await axios.request(options);
+  await Generate_Api_User(X_Reference_id, next);
+  // if()
+  // await CreatedUser(X_Reference_id, next);
+  await GetApiKey(X_Reference_id, req, res, next);
+});
+//generate api user
+
 //created user
 const CreatedUser = async (X_Reference_id, next) => {
   var options = {
@@ -105,8 +110,9 @@ const GetApiKey = async (X_Reference_id, req, res, next) => {
   //await trensferArgent(Token,X_Reference_id,req,res,next)
 
 
+
 };
-const GetAPITrensfert = async (X_Reference_id, req, res, next) => {
+const GetAPITransfert = async (X_Reference_id, req, res, next) => {
   var options = {
     method: 'POST',
     url:
@@ -154,8 +160,9 @@ const GetAPITrensfert = async (X_Reference_id, req, res, next) => {
   await trensferArgent(Token, X_Reference_id, req, res, next)
 
 
+
 };
-exports.trensferArgent = catchAsync(async (req, res, next) => {
+exports.transferArgent = catchAsync(async (req, res, next) => {
   var options = {
     method: 'GET',
     url: process.env.URL_MOMO_UUID_REFERENCE_ID
@@ -164,7 +171,7 @@ exports.trensferArgent = catchAsync(async (req, res, next) => {
   const X_Reference_id = await axios.request(options);
   await Generate_Api_User(X_Reference_id, next);
   await CreatedUser(X_Reference_id, next);
-  await GetAPITrensfert(X_Reference_id, req, res, next);
+  await GetAPITransfert(X_Reference_id, req, res, next);
 });
 const trensferArgent =
   async (Token, X_Reference_id, req, res, next) => {
@@ -200,6 +207,7 @@ const Solde = async (Token, req, res, next) => {
   var options = {
     method: 'GET',
     url: 'https://sandbox.momodeveloper.mtn.com/collection/v1_0/account/balance',
+
     headers: {
       'X-Target-Environment': process.env.MOMO_X_Targe_Environement,
       'Ocp-Apim-Subscription-Key': process.env.MOMO_Ocp_Apim_Subscription_KEY,
@@ -242,3 +250,4 @@ exports.SendNotification = catchAsync(async (req, res, next) => {
   });
 
 })
+
