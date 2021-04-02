@@ -4,16 +4,7 @@ const User = require('./../models/userModel');
 const catchAsync = require('./../utils/catchAsync');
 const AppError = require('./../utils/appError');
 const factory = require('./handlerFactory');
-
-// const multerStorage = multer.diskStorage({
-//   destination: (req, file, cb) => {
-//     cb(null, 'public/img/users');
-//   },
-//   filename: (req, file, cb) => {
-//     const ext = file.mimetype.split('/')[1];
-//     cb(null, `user-${req.user.id}-${Date.now()}.${ext}`);
-//   }
-// });
+const bcrypt = require('bcryptjs');
 const multerStorage = multer.memoryStorage();
 
 const multerFilter = (req, file, cb) => {
@@ -96,6 +87,20 @@ exports.deleteMe = catchAsync(async (req, res, next) => {
     data: null
   });
 });
+
+
+exports.updatePassword = catchAsync(async(req,res,next) =>{
+     const user  = await User.findById(req.user.id).select(
+      '+password'
+    );
+     const hachpassword = bcrypt.hashSync(req.body.password, 12);
+
+     user.password = hachpassword
+     user.passwordConfirm =req.body.password
+     await user.save()
+     res.status(200).send({message:"le mot de passe et modifer"})
+})
+
 
 exports.createUser = (req, res) => {
   res.status(500).json({

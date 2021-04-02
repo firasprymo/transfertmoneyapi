@@ -48,11 +48,11 @@ exports.VeriferCodeSMS = catchAsync(async (req, res, next) => {
     { phoneNumber: req.body.phonenumber },
     { active: true }
   );
-
+  console.log(verifercode.status)
   // user.active = true;
   if (verifercode.status === 'approved') {
     res.status(200).send({
-      message: 'User is Verified!!'
+      message: 'votre compte est confirme!'
     });
   } else {
     res.status(400).send({
@@ -97,7 +97,7 @@ exports.login = catchAsync(async (req, res, next) => {
   // 2) Check if user exists && password is correct
   const user = await User.findOne({ email }).select('+password');
   if (!user) {
-    return next(new AppError("il faut vérifier votre données ou de faire un compts", 400));
+    return next(new AppError("E-mail ou bien mot de passe incorrect", 400));
   }
   if (user.active ==false) {
     return next(new AppError("Vous n'avez pas les droits d'accés!", 400));

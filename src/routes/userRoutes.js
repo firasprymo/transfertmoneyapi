@@ -27,6 +27,7 @@ router.patch(
   userController.updateMe
 );
 router.delete('/deleteMe', userController.deleteMe);
+router.patch('/UpdateUserPassword',userController.updatePassword);
 
 router.use(authController.restrictTo('admin'));
 router.patch('/bloqueUser', userController.bloqueUser);

@@ -2,13 +2,12 @@ const factory = require('./handlerFactory');
 const APIFeatures = require('./../utils/apiFeatures');
 const Notification = require('../models/notificationModel');
 const catchAsync = require('../utils/catchAsync');
-
+const axios = require('axios')
 
 
 //send notification
 exports.SendNotification = catchAsync(async (req, res, next) => {
     // const user = req.user.id;
-    console.log(req.body);
     var options = {
       method: 'POST',
       url: 'https://onesignal.com/api/v1/notifications',
@@ -19,6 +18,9 @@ exports.SendNotification = catchAsync(async (req, res, next) => {
       data: req.body
     };
     var sendNotification = await axios.request(options);
+    if(!sendNotification) {
+      return next(new AppError("il ya un erreur lors de l'envoie de notification", 400));
+    }
     req.body.userID = req.user.id;
     await Notification.create(req.body);
     res.status(200).send({

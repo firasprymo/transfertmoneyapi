@@ -16,7 +16,7 @@ const globalErrorHandler = require('./src/controllers/errorController');
 const userRouter = require('./src/routes/userRoutes');
 const viewRouter = require('./src/routes/viewRoutes');
 const transactionRouter = require('./src/routes/transactionRouter');
-const notificationRouter = require('./src/routes/notificationRouters')
+const notificationRouter = require('./src/routes/notificationRoutes')
 const chatRouter = require('./src/routes/chatRoutes')
 // Start express app
 const app = express();
