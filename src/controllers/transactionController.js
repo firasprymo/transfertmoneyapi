@@ -2,8 +2,6 @@ const AppError = require('../utils/appError');
 var axios = require('axios').default;
 const catchAsync = require('../utils/catchAsync');
 const Transaction = require('../models/transactionModal');
-const Notification = require('../models/notificationModel');
-const User = require('../models/userModel');
 const factory = require('./handlerFactory');
 const APIFeatures = require('./../utils/apiFeatures');
 // 1/
@@ -212,26 +210,7 @@ const Solde = async (Token, req, res, next) => {
   });
 };
 
-//send notification
-exports.SendNotification = catchAsync(async (req, res, next) => {
-  // const user = req.user.id;
-  console.log(req.body);
-  var options = {
-    method: 'POST',
-    url: 'https://onesignal.com/api/v1/notifications',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Basic ${process.env.NOTIFICATION_TOKEN}`
-    },
-    data: req.body
-  };
-  var sendNotification = await axios.request(options);
-  req.body.userID = req.user.id;
-  await Notification.create(req.body);
-  res.status(200).send({
-    message: 'notification send'
-  });
-});
+
 
 exports.getAllTransactions = factory.getAll(Transaction);
 exports.getTransaction = factory.getOne(Transaction, { path: 'reviews' });

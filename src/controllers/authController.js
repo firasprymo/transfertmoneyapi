@@ -88,16 +88,22 @@ exports.signup = catchAsync(async (req, res, next) => {
 
 exports.login = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
-
+ 
   // 1) Check if email and password exist
   if (!email || !password) {
-    return next(new AppError('Please provide email and password!', 400));
+    return next(new AppError('Merci de saisir email et password correcte!', 400));
   }
+
   // 2) Check if user exists && password is correct
   const user = await User.findOne({ email }).select('+password');
-  if (!user.active) {
+  if (!user) {
+    return next(new AppError("il faut vérifier votre données ou de faire un compts", 400));
+  }
+  if (user.active ==false) {
     return next(new AppError("Vous n'avez pas les droits d'accés!", 400));
   }
+
+
 
   if (!user || !(await user.correctPassword(password, user.password))) {
     return next(new AppError('Incorrect email or password', 401));
