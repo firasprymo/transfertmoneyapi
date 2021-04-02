@@ -2,6 +2,8 @@ const AppError = require('../utils/appError');
 var axios = require('axios').default;
 const catchAsync = require('../utils/catchAsync');
 const Transaction = require('../models/transactionModal');
+const Notification = require('../models/notificationModel')
+const User = require('../models/userModel')
 const factory = require('./handlerFactory');
 const APIFeatures = require('./../utils/apiFeatures');
 // 1/ 
@@ -101,11 +103,14 @@ const GetApiKey = async (X_Reference_id, req, res, next) => {
   }
   // console.log(req.query.id)
   //if(req.query.id == 1){
-  await Solde(Token, req, res, next);
+  await Solde(Token, req, res, next)
   //   console.log('ok')
   // }
   //else if(req.query.id == 2) {
-  //await transferArgent(Token,X_Reference_id,req,res,next)
+  //await trensferArgent(Token,X_Reference_id,req,res,next)
+
+
+
 };
 const GetAPITransfert = async (X_Reference_id, req, res, next) => {
   var options = {
@@ -152,7 +157,10 @@ const GetAPITransfert = async (X_Reference_id, req, res, next) => {
     return next(new AppError('You are not authorized', 401));
   }
 
-  await transferArgent(Token, X_Reference_id, req, res, next);
+  await trensferArgent(Token, X_Reference_id, req, res, next)
+
+
+
 };
 exports.transferArgent = catchAsync(async (req, res, next) => {
   var options = {
@@ -165,107 +173,81 @@ exports.transferArgent = catchAsync(async (req, res, next) => {
   await CreatedUser(X_Reference_id, next);
   await GetAPITransfert(X_Reference_id, req, res, next);
 });
-const transferArgent = async (Token, X_Reference_id, req, res, next) => {
-  const user = req.user.id;
-  req.body.users = req.user.id;
-  console.log(req.body);
-  var options = {
-    method: 'POST',
-    headers: {
-      'X-Reference-Id': X_Reference_id.data,
-      'X-Target-Environment': process.env.MOMO_X_Targe_Environement,
-      'Content-Type': 'application/json',
-      'Ocp-Apim-Subscription-Key': process.env.MOMO_Disbursements_KEY,
-      Authorization: `Bearer ${Token.data.access_token}`
-    },
-    url: process.env.URL_MOMO_TRENSACTION,
+const trensferArgent =
+  async (Token, X_Reference_id, req, res, next) => {
 
-    data: req.body
-  };
-  const result = await Transaction.create(req.body);
-  const transfer = await axios.request(options);
-  if (!transfer) {
-    return next(new AppError('You are not authorized', 401));
+    var options = {
+      method: 'POST',
+      headers: {
+        'X-Reference-Id': X_Reference_id.data,
+        'X-Target-Environment': process.env.MOMO_X_Targe_Environement,
+        'Content-Type': 'application/json',
+        'Ocp-Apim-Subscription-Key': process.env.MOMO_Disbursements_KEY,
+        Authorization: `Bearer ${Token.data.access_token}`
+      },
+      url: process.env.URL_MOMO_TRENSACTION,
+      data: req.body
+    };
+    const result = await Transaction.create(req.body);
+    const trensfer = await axios.request(options);
+    if (!trensfer) {
+      return next(new AppError('You are not authorized', 401));
+    }
+    if (trensfer.status === 202) {
+      res.send({ message: 'transfert effectué avec succès' });
+    } else {
+      res.send({ message: 'echec de transfert' });
+    }
   }
-  if (transfer.status === 202) {
-    res.send({ message: 'transfert effectué avec succès' });
-  } else {
-    res.send({ message: 'echec de transfert' });
-  }
-};
+  ;
+
+
 const Solde = async (Token, req, res, next) => {
+
   var options = {
     method: 'GET',
-    url:
-      'https://sandbox.momodeveloper.mtn.com/collection/v1_0/account/balance',
+    url: 'https://sandbox.momodeveloper.mtn.com/collection/v1_0/account/balance',
+
     headers: {
       'X-Target-Environment': process.env.MOMO_X_Targe_Environement,
       'Ocp-Apim-Subscription-Key': process.env.MOMO_Ocp_Apim_Subscription_KEY,
       Authorization: `Bearer ${Token.data.access_token}`
     }
-  };
-  const solde = await axios.request(options);
+
+  }
+  const solde = await axios.request(options)
   if (!solde) {
     return next(new AppError('You are not authorized', 401));
+
   }
   res.status(200).send({
     data: solde.data
-  });
+  })
+
 };
 
+
+
+
+//send notification 
 exports.SendNotification = catchAsync(async (req, res, next) => {
-  var notification = {
-    title: 'Title Notification',
-    text: 'votre transaction fait avec succes'
-  };
-  var fcm_tokens = [];
-  var notification_body = {
-    notification: notification,
-    registration_ids: fcm_tokens
-  };
+ // const user = req.user.id;
+  console.log(req.body)
   var options = {
-    methode: 'POST',
-    url: process.env.NOTIFICATION_URL,
+    method: 'POST',
+    url:"https://onesignal.com/api/v1/notifications",
     headers: {
-      Authorization: 'key=' + process.env.NOTIFICATION_TOKEN
+      'Content-Type': 'application/json',
+      Authorization: `Basic ${process.env.NOTIFICATION_TOKEN}`,
     },
-    data: JSON.stringify(notification_body),
-    'Content-Type': 'application/json'
+    data: req.body
   };
-  const Notification = axios.request(options);
-  console.log(notification);
-});
-
-exports.getAllTransactions = factory.getAll(Transaction);
-exports.getTransaction = factory.getOne(Transaction, { path: 'reviews' });
-exports.createTransaction = factory.createOne(Transaction);
-exports.updateTransaction = factory.updateOne(Transaction);
-exports.deleteTransaction = factory.deleteOne(Transaction);
-
-exports.getUserHistorique = catchAsync(async (req, res, next) => {
-  console.log(req.user.id);
-  if (req.user.id) filter = { users: req.user.id };
-console.log(filter);
-  const features = new APIFeatures(Transaction.find(filter), req.query)
-    .filter()
-    .sort()
-    .limitFields()
-    .paginate();
-  const doc = await features.query;
-
-  // let query = Transaction.find({ user: '6065ad8e0a88c7de5dbc695e' });
-  // query = query.populate({ path: 'user' });
-  // const doc = await query;
-
-  if (!doc) {
-    return next(new AppError('No document found with that ID', 404));
-  }
-
-  res.status(200).json({
-    status: 'success',
-    results: doc.length,
-    data: {
-      data: doc
-    }
+   var sendNotification = await axios.request(options)
+   req.body.userID = req.user.id 
+   await Notification.create(req.body)
+   res.status(200).send({
+    message: 'notification send'
   });
-});
+
+})
+

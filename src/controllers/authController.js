@@ -284,7 +284,7 @@ exports.sendCodeVerification = catchAsync(async (req, res, next) => {
       channel: 'sms'
     });
 
-  res.status(200).json({ status: 'success' });
+  res.status(200).json({ status: 'success',message:'Votre code est bien envoyer' });
 });
 
 exports.resetCodePin = catchAsync(async (req, res, next) => {
