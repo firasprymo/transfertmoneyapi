@@ -61,8 +61,8 @@ exports.VeriferCodeSMS = catchAsync(async (req, res, next) => {
   }
 });
 
-const createSendToken = (user, statusCode, res) => {
-  const token = signToken(user._id);
+const createSendToken =async (user, statusCode, res) => {
+  const token =await signToken(user._id);
   // Remove password from output
   user.password = undefined;
   res.status(statusCode).json({
@@ -104,7 +104,7 @@ exports.login = catchAsync(async (req, res, next) => {
   }
 
   // 3) If everything ok, send token to client
-  createSendToken(user, 200, res);
+ await createSendToken(user, 200, res);
 });
 
 exports.logout = (req, res) => {
