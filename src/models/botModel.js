@@ -6,13 +6,10 @@ const messageSchema = new mongoose.Schema({
       require:true
   },
 
-  senderType:{
-    type:String,
-    required:true
-  },
   senderID:{
-    type:String,
-    required:true
+    type: mongoose.Schema.ObjectId,
+    ref: 'User',
+    required: [true, 'message doit appartenir à un utilisateur']
   },
   status: {
     type:String,
@@ -26,6 +23,13 @@ const messageSchema = new mongoose.Schema({
 
 });
 
+messageSchema.pre(/^find/, function(next) {
+  this.populate({
+    path: 'User',
+    select: 'name'
+  });
+  next();
+});
 const Message = mongoose.model('Message', messageSchema);
 
 module.exports = Message;

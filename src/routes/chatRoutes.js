@@ -4,7 +4,8 @@ const authController = require('../controllers/authController');
 
 const router = express.Router();
 router.use(authController.protect);
-router.post('/SendMessage',chatController.SendMessage);
+router.post('/sendMessage',chatController.chat);
+
 
 module.exports = router;
 

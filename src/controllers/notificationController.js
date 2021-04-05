@@ -42,11 +42,6 @@ exports.getUserNotification = catchAsync(async (req, res, next) => {
     .limitFields()
     .paginate();
   const doc = await features.query;
-
-  // let query = Transaction.find({ user: '6065ad8e0a88c7de5dbc695e' });
-  // query = query.populate({ path: 'user' });
-  // const doc = await query;
-
   if (!doc) {
     return next(new AppError('No notification found with that ID', 404));
   }
@@ -58,4 +53,29 @@ exports.getUserNotification = catchAsync(async (req, res, next) => {
       data: doc
     }
   });
+});
+
+
+exports.activeMessage = catchAsync(async (req, res) => {
+  console.log('idddd',req.body)
+ await Message.findByIdAndUpdate(req.body.id, {
+     status: true,
+ });
+ // console.log('user',user);
+ res.status(200).json({
+   message: 'Message Lu',
+
+ });
+});
+
+exports.activeNotification = catchAsync(async (req, res) => {
+
+ await Notification.findByIdAndUpdate(req.body.id, {
+  status: true,
+ });
+ // console.log('user',user);
+ res.status(200).json({
+   message: 'Notification Lu',
+
+ });
 });

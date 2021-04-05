@@ -1,40 +1,56 @@
+const { ieNoOpen } = require("helmet");
 const catchAsync = require("../utils/catchAsync");
-const dialogflow = require('dialogflow');
-const Message = require('../models/messagesModel')
+//const io = require("socket.io");
+//const express = require("express");
+// const app = express();
+// const http = require("http").Server(app);
 
 
-exports.SendMessage = catchAsync(async (req, res, next) => {
-    // console.log(req.body)
-    if (!req.body) {
-        return next(new AppError("il faut saisir un message", 400));
-    }
-    console.log(req.user._id)
-    const projectId = process.env.googleProjectID;
-    const sessionId = process.env.dialogFlowSessionID;
-    const sessionClient = new dialogflow.SessionsClient();
-    const sessionPath = sessionClient.sessionPath(projectId, sessionId);
-    const request = {
-        session: sessionPath,
-        queryInput: {
-            text: {
-                // The query to send to the dialogflow agent
-                text: req.body.message,
-                // The language used by the client (en-US)
-                languageCode: 'en-US',
-            },
-        },
-    };
-    const responses = await sessionClient.detectIntent(request);
-    //  req.body.senderID = req.user.id;
+// socket = io(http);
 
-    req.body.senderType = req.user.role
-    req.body.senderID = req.user.id
-    await Message.create(req.body)
-    if (!responses) {
-        return next(new AppError("IL ya un erreur lors de l'envois de message", 400));
-    }
-    const result = responses[0].queryResult;
+exports.chat =catchAsync(async (io) => {
+  // socket.on("connection", socket => {
+  //   console.log("user connected");
 
-    res.status(200).json({ response: result.fulfillmentText, status: 'success' })
+  //   socket.on("disconnect", function () {
+  //     console.log("user disconnected");
+  //   });
+
+  //   //Someone is typing
+  //   socket.on("typing", data => {
+  //     socket.broadcast.emit("notifyTyping", {
+  //       user: data.user,
+  //       message: data.message
+  //     });
+  //   });
+
+  //   //when soemone stops typing
+  //   socket.on("stopTyping", () => {
+  //     socket.broadcast.emit("notifyStopTyping");
+  //   });
+
+  //   socket.on("chat message", function (msg) {
+  //     console.log("message: " + msg);
+
+  //     //broadcast message to everyone in port:5000 except yourself.
+  //     socket.broadcast.emit("received", { message: msg });
+
+  //     //save chat to the database
+  //     connect.then(db => {
+  //       console.log("connected correctly to the server");
+  //       let chatMessage = new Chat({ message: msg, sender: "Anonymous" });
+
+  //       chatMessage.save();
+  //     });
+  //   });
+  // })
+  io.on('connection',async socket =>{
+    console.log("connection")
+    socket.on('tuping',async msg =>{
+      console.log(msg)
+     // socket.broadcast.emit("typing",{msg:msg.name})
+    });
+  })
 
 })
+

@@ -18,6 +18,7 @@ router.use(authController.protect);
 
 router.post('/loginCodePin', authController.loginCodePin);
 router.patch('/updateMyPassword', authController.updatePassword);
+router.patch('/updateCodePin',authController.updateCodePin)
 router.get('/me', userController.getMe, userController.getUser);
 
 router.patch(
@@ -27,7 +28,6 @@ router.patch(
   userController.updateMe
 );
 router.delete('/deleteMe', userController.deleteMe);
-router.patch('/UpdateUserPassword',userController.updatePassword);
 
 router.use(authController.restrictTo('admin'));
 router.patch('/bloqueUser', userController.bloqueUser);
