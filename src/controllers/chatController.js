@@ -1,56 +1,81 @@
-const { ieNoOpen } = require("helmet");
+
 const catchAsync = require("../utils/catchAsync");
-//const io = require("socket.io");
-//const express = require("express");
-// const app = express();
-// const http = require("http").Server(app);
+const message = require('../models/messageModel');
+const conversation = require('../models/conversationModel')
+
+// start new Chat
+exports.startChat = catchAsync(async (req, res, next) => {
+  const Aconversation = new conversation({
+    participants: [req.user.id, req.params.recipient]
+  });
+
+  Aconversation.save(function (err, newConversation) {
+    if (err) {
+      res.send({ message: "vous ne pouvez pas faire une conversation " });
+      return next(err);
+    }
+    res.status(200).json({ message: 'Conversation started!', conversationId: newConversation._id });
+    return next();
+  });
+});
 
 
-// socket = io(http);
+//chat 
+exports.sendMessage = catchAsync(async (req, res, next) => {
+  if (!req.body.message) {
+    return next(new AppError("il faut saisir un message", 400));
+  }
+  const data = new message({
+    conversationId: req.params.conversationId,
+    message: req.body.message,
+    sender: req.user.id
+  });
 
-exports.chat =catchAsync(async (io) => {
-  // socket.on("connection", socket => {
-  //   console.log("user connected");
+  data.save(function (err, sentReply) {
+    if (err) {
+      res.send({ error: err });
+      return next(err);
+    }
 
-  //   socket.on("disconnect", function () {
-  //     console.log("user disconnected");
-  //   });
+    res.status(200).json({ message: 'message envoyer avec succes', data: req.body.message });
+    return (next);
+  });
 
-  //   //Someone is typing
-  //   socket.on("typing", data => {
-  //     socket.broadcast.emit("notifyTyping", {
-  //       user: data.user,
-  //       message: data.message
-  //     });
-  //   });
+});
 
-  //   //when soemone stops typing
-  //   socket.on("stopTyping", () => {
-  //     socket.broadcast.emit("notifyStopTyping");
-  //   });
 
-  //   socket.on("chat message", function (msg) {
-  //     console.log("message: " + msg);
+//get list of messages in chat
+exports.getListMessages = catchAsync(async (req, res, next) => {
+  if (!req.params.conversationId) {
+    return next(new AppError("il faut envoyer l'id de conversation", 400));
 
-  //     //broadcast message to everyone in port:5000 except yourself.
-  //     socket.broadcast.emit("received", { message: msg });
+  }
+  message.find({ conversationId: req.params.conversationId })
+    .select('createdAt message sender')
+    .sort('-createdAt')
+    .populate({
+      path: 'sender',
+      select: 'name role'
+    })
+    .exec(function (err, messages) {
+      if (err) {
+        res.send({ message: "message non envoyé" });
+        return next(err);
+      }
 
-  //     //save chat to the database
-  //     connect.then(db => {
-  //       console.log("connected correctly to the server");
-  //       let chatMessage = new Chat({ message: msg, sender: "Anonymous" });
-
-  //       chatMessage.save();
-  //     });
-  //   });
-  // })
-  io.on('connection',async socket =>{
-    console.log("connection")
-    socket.on('tuping',async msg =>{
-      console.log(msg)
-     // socket.broadcast.emit("typing",{msg:msg.name})
+      res.status(200).json({ conversation: messages });
     });
-  })
+});
+
+//modifer le status de message lu 
+exports.changeStatusMessage = catchAsync(async (req, res, next) => {
+  await message.findByIdAndUpdate(req.params.idMessage, {
+    status: true,
+  });
+
+  res.status(200).json({
+    message: 'Message Lu',
+
+  });
 
 })
-

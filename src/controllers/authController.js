@@ -6,7 +6,6 @@ const catchAsync = require('./../utils/catchAsync');
 const AppError = require('./../utils/appError');
 const Email = require('./../utils/email');
 const { token } = require('morgan');
-const Conversation = require('../models/conversationModel')
 const client = require('twilio')(
   process.env.TWILIO_ACCOUNT_SID,
   process.env.TWILIO_AUTH_TOKEN
@@ -48,7 +47,6 @@ exports.VeriferCodeSMS = catchAsync(async (req, res, next) => {
     { phoneNumber: req.body.phonenumber },
     { active: true }
   );
-  console.log(verifercode.status)
   // user.active = true;
   if (verifercode.status === 'approved') {
     res.status(200).send({
@@ -347,7 +345,6 @@ exports.updateCodePin = catchAsync(async(req,res,next) =>{
 //login with code pin
 exports.loginCodePin = catchAsync(async (req, res, next) => {
   const { codePin } = req.body;
-
   // 1) Check if email and password exist
   if (!codePin) {
     return next(new AppError('Please provide  codePin!', 400));

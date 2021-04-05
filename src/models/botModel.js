@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const messageSchema = new mongoose.Schema({
+const botSchema = new mongoose.Schema({
 
   message: {
       type:String,
@@ -23,13 +23,13 @@ const messageSchema = new mongoose.Schema({
 
 });
 
-messageSchema.pre(/^find/, function(next) {
+botSchema.pre(/^find/, function(next) {
   this.populate({
     path: 'User',
     select: 'name'
   });
   next();
 });
-const Message = mongoose.model('Message', messageSchema);
+const Bot = mongoose.model('Bot', botSchema);
 
-module.exports = Message;
+module.exports = Bot;
