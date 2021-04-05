@@ -18,6 +18,7 @@ router.use(authController.protect);
 
 router.post('/loginCodePin', authController.loginCodePin);
 router.patch('/updateMyPassword', authController.updatePassword);
+router.patch('/updateCodePin',authController.updateCodePin)
 router.get('/me', userController.getMe, userController.getUser);
 
 router.patch(

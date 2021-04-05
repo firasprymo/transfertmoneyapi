@@ -8,7 +8,7 @@ const handleCastErrorDB = err => {
 const handleDuplicateFieldsDB = err => {
   const value = err.errmsg.match(/(["'])(\\?.)*?\1/)[0];
 
-  const error = `Duplicate field value: ${value}. Please use another value!`;
+  const error = `Duplicate field value: ${value}. vérifer le numéro ou votre email!`;
   return new AppError(error, 410);
 };
 
@@ -28,11 +28,12 @@ const handleJWTExpiredError = () =>
 const sendErrorDev = (err, req, res) => {
   // A) API
   if (req.originalUrl.startsWith('/api')) {
+
     return res.status(err.statusCode).json({
       status: err.status,
       errors: err,
       message: err.message,
-      stack: err.stack
+     // stack: err.stack
     });
   }
 

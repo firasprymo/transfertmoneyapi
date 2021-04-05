@@ -6,7 +6,7 @@ const catchAsync = require('./../utils/catchAsync');
 const AppError = require('./../utils/appError');
 const Email = require('./../utils/email');
 const { token } = require('morgan');
-
+const Conversation = require('../models/conversationModel')
 const client = require('twilio')(
   process.env.TWILIO_ACCOUNT_SID,
   process.env.TWILIO_AUTH_TOKEN
@@ -48,11 +48,11 @@ exports.VeriferCodeSMS = catchAsync(async (req, res, next) => {
     { phoneNumber: req.body.phonenumber },
     { active: true }
   );
-
+  console.log(verifercode.status)
   // user.active = true;
   if (verifercode.status === 'approved') {
     res.status(200).send({
-      message: 'User is Verified!!'
+      message: 'votre compte est confirme!'
     });
   } else {
     res.status(400).send({
@@ -63,6 +63,7 @@ exports.VeriferCodeSMS = catchAsync(async (req, res, next) => {
 
 const createSendToken =async (user, statusCode, res) => {
   const token =await signToken(user._id);
+
   // Remove password from output
   user.password = undefined;
   res.status(statusCode).json({
@@ -83,21 +84,28 @@ exports.signup = catchAsync(async (req, res, next) => {
   await new Email(newUser, url).sendWelcome();
 
   createSendToken(newUser, 201, res);
-  // SendSMS(newUser);
+  SendSMS(newUser);
+  
 });
 
 exports.login = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
-
+ 
   // 1) Check if email and password exist
   if (!email || !password) {
-    return next(new AppError('Please provide email and password!', 400));
+    return next(new AppError('Merci de saisir email et password correcte!', 400));
   }
+
   // 2) Check if user exists && password is correct
   const user = await User.findOne({ email }).select('+password');
-  if (!user.active) {
+  if (!user) {
+    return next(new AppError("E-mail ou bien mot de passe incorrect", 400));
+  }
+  if (user.active ==false) {
     return next(new AppError("Vous n'avez pas les droits d'accés!", 400));
   }
+
+
 
   if (!user || !(await user.correctPassword(password, user.password))) {
     return next(new AppError('Incorrect email or password', 401));
@@ -105,6 +113,7 @@ exports.login = catchAsync(async (req, res, next) => {
 
   // 3) If everything ok, send token to client
  await createSendToken(user, 200, res);
+
 });
 
 exports.logout = (req, res) => {
@@ -327,6 +336,14 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
   // 4) Log user in, send JWT
   createSendToken(user, 200, req, res);
 });
+exports.updateCodePin = catchAsync(async(req,res,next) =>{
+  const user = await User.findById(req.user.id)
+  // 3) If so, update password
+  user.codePin = req.body.codePin;
+  await user.save();
+   // 4) Log user in, send JWT
+   createSendToken(user, 200, req, res);
+})
 //login with code pin
 exports.loginCodePin = catchAsync(async (req, res, next) => {
   const { codePin } = req.body;
