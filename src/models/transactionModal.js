@@ -34,7 +34,7 @@ const transactionSchema = new mongoose.Schema({
       minlength: 8,
       validate: {
         validator: function(el) {
-          return el.toString().length === 8;
+          return el.toString().length === 11;
         },
         message: 'le numéro doit être 8 caractères'
       }

@@ -119,7 +119,7 @@ exports.activeUser = catchAsync(async (req, res) => {
     data: null,
   });
 });
-exports.getUser = factory.getOne(User);
+exports.getUser = factory.getOne(User)
 exports.getAllUsers = factory.getAll(User);
 
 // Do NOT update passwords with this!

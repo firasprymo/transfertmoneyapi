@@ -140,6 +140,7 @@ exports.GetAPITransfert = async (X_Reference_id, req, res, next) => {
 
 
 const trensferArgent = async (Token, X_Reference_id, req, res, next) => {
+    req.body.payee.partyId = req.user.phoneNumber
     var options = {
         method: 'POST',
         headers: {
@@ -184,7 +185,7 @@ const Solde = async (Token, req, res, next) => {
     if (!solde) {
         return next(new AppError('You are not authorized', 401));
     }
-    console.log(solde)
+    // console.log(solde)
     res.status(200).send({
         data: solde.data
     });
