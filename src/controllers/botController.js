@@ -46,7 +46,7 @@ exports.activeMessage = catchAsync(async (req, res) => {
     });
 });
 exports.getMessageByUserId = catchAsync(async (req, res, next) => {
-    const listeMessage = await Bot.find({ senderID: req.params.id })
+    const listeMessage = await Bot.find({ senderID: req.user.id })
     res.status(200).json({
         listeMessage
     })

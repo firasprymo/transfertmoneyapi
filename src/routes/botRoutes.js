@@ -6,7 +6,7 @@ const router = express.Router();
 router.use(authController.protect);
 router.post('/SendMessage',botController.SendMessage);
 router.patch('/luMessage', botController.activeMessage);
-router.get('/listeMessageByUser/:id',botController.getMessageByUserId)
+router.get('/listeMessageByUser',botController.getMessageByUserId)
 
 module.exports = router;
 

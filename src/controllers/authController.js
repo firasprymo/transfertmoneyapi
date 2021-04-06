@@ -332,7 +332,7 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
   // User.findByIdAndUpdate will NOT work as intended!
 
   // 4) Log user in, send JWT
-  createSendToken(user, 200, req, res);
+  createSendToken(user, 200,  res);
 });
 exports.updateCodePin = catchAsync(async(req,res,next) =>{
   const user = await User.findById(req.user.id)
