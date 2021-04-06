@@ -1,10 +1,17 @@
 const express = require('express');
-const chatController = require('../controllers/chatController');
+const chatController = require('../controllers/chatController')
 const authController = require('../controllers/authController');
 
 const router = express.Router();
 router.use(authController.protect);
-router.post('/sendMessage',chatController.chat);
+//creer conversation
+router.get('/new/:recipient',chatController.startChat);
+//chat netre les deux 
+router.post('/:conversationId',chatController.sendMessage);
+//get liste des message dans une conversation
+router.get('/:conversationId',chatController.getListMessages);
+//update status message
+router.patch('/:idMessage', chatController.changeStatusMessage);
 
 
 module.exports = router;
