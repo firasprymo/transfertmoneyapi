@@ -5,13 +5,16 @@ const conversation = require('../models/conversationModel')
 
 // start new Chat
 exports.startChat = catchAsync(async (req, res, next) => {
-  const Aconversation = new conversation({
+  if(!req.params.recipient) {
+    return next(new AppError("le recipient n'existe pas", 400));
+  }
+  const data = new conversation({
     participants: [req.user.id, req.params.recipient]
   });
 
-  Aconversation.save(function (err, newConversation) {
+  data.save(function (err, newConversation) {
     if (err) {
-      res.send({ message: "vous ne pouvez pas faire une conversation " });
+      res.send({ message: "Vous ne pouvez pas faire une conversation " });
       return next(err);
     }
     res.status(200).json({ message: 'Conversation started!', conversationId: newConversation._id });
@@ -20,7 +23,7 @@ exports.startChat = catchAsync(async (req, res, next) => {
 });
 
 
-//chat 
+//chat entre le users et ladmin
 exports.sendMessage = catchAsync(async (req, res, next) => {
   if (!req.body.message) {
     return next(new AppError("il faut saisir un message", 400));
@@ -33,7 +36,7 @@ exports.sendMessage = catchAsync(async (req, res, next) => {
 
   data.save(function (err, sentReply) {
     if (err) {
-      res.send({ error: err });
+      res.send({message: 'message non envoyer ' });
       return next(err);
     }
 
@@ -67,12 +70,11 @@ exports.getListMessages = catchAsync(async (req, res, next) => {
     });
 });
 
-//modifer le status de message lu 
+//modifer le status de message
 exports.changeStatusMessage = catchAsync(async (req, res, next) => {
   await message.findByIdAndUpdate(req.params.idMessage, {
     status: true,
   });
-
   res.status(200).json({
     message: 'Message Lu',
 

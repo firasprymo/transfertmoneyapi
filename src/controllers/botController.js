@@ -23,17 +23,12 @@ exports.SendMessage = catchAsync(async (req, res, next) => {
         },
     };
     const responses = await sessionClient.detectIntent(request);
-    //  req.body.senderID = req.user.id;
-
     req.body.senderID = req.user.id
     await Bot.create(req.body)
     if (!responses) {
         return next(new AppError("IL ya un erreur lors de l'envois de message", 400));
     }
     const result = responses[0].queryResult;
-    if (result.fulfillmentText) {
-
-    }
     res.status(200).json({ response: result.fulfillmentText, status: 'success' })
 
 })
