@@ -75,7 +75,7 @@ app.use(xss());
 
 
 app.use(compression());
-
+process.env.GOOGLE_APPLICATION_CREDENTIALS="./chat.json"
 // Test middleware
 app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();

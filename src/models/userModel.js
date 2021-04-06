@@ -45,6 +45,7 @@ const userSchema = new mongoose.Schema({
   },
   phoneNumber: {
     type: Number,
+    unique:true,
     required: [true, 'Veuillez saisir votre numero telephone'],
     minlength: 8,
     // unique: false,
