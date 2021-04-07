@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
-const socketio = require('./src/controllers/socket');  
+const socketio = require('./src/utils/socket');  
 //const chatController = require('./src/controllers/chatController')
 process.on('uncaughtException', err => {
   console.log('UNCAUGHT EXCEPTION! 💥 Shutting down...');
