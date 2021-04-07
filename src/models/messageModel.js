@@ -16,14 +16,20 @@ const messageSchema = new mongoose.Schema({
           type:Boolean,
           default:false
     },
+    
    createdAt: {
         type: Date,
         default: Date.now()
     },
 
 });
-
-
+messageSchema.pre(/^find/, function(next) {
+    this.populate({
+      path: 'User',
+      select: 'name'
+    });
+    next();
+  });
 const message = mongoose.model('message', messageSchema);
 
 module.exports = message;

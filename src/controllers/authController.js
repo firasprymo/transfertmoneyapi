@@ -296,10 +296,7 @@ exports.sendCodeVerification = catchAsync(async (req, res, next) => {
 
 exports.resetCodePin = catchAsync(async (req, res, next) => {
   // 1) Get user based on the token
-  //filter if user exist or no
-  // if (!req.body.token) {
-  //   return next(new AppError("Le jeton n'est pas valide ou a expiré", 401));
-  // }
+
   const user = await User.findOne({ phoneNumber: req.body.phonenumber }).select(
     '+password'
   );

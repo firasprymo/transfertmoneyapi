@@ -13,6 +13,7 @@ exports.ConsulterSolde = catchAsync(async (req, res, next) => {
   };
 
   const X_Reference_id = await axios.request(options);
+  console.log(X_Reference_id.status)
   await factoryTransaction.Generate_Api_User(X_Reference_id, next);
   await factoryTransaction.GetApiKey(X_Reference_id, req, res, next);
 });
@@ -38,9 +39,9 @@ exports.updateTransaction = factory.updateOne(Transaction);
 exports.deleteTransaction = factory.deleteOne(Transaction);
 
 exports.getUserHistorique = catchAsync(async (req, res, next) => {
-  console.log(req.user.id);
+ 
   if (req.user.id) filter = { users: req.user.id };
-  console.log(filter);
+
   const features = new APIFeatures(Transaction.find(filter), req.query)
     .filter()
     .sort()
