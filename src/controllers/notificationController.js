@@ -7,6 +7,7 @@ const axios = require('axios');
 
 //send notification
 exports.SendNotification = catchAsync(async (req, res, next) => {
+  req.body.app_id = process.env.NOTIFICATION_APP_ID
   var options = {
     method: 'POST',
     url: 'https://onesignal.com/api/v1/notifications',
@@ -33,7 +34,8 @@ exports.createNotification = factory.createOne(Notification);
 exports.deleteNotification = factory.deleteOne(Notification);
 
 exports.getUserNotification = catchAsync(async (req, res, next) => {
-  if (req.user.id) filter = { users: req.user.id };
+ 
+  if (req.user.id) filter = { userID: req.user.id };
   const features = new APIFeatures(Notification.find(filter), req.query)
     .filter()
     .sort()
@@ -46,10 +48,11 @@ exports.getUserNotification = catchAsync(async (req, res, next) => {
 
   res.status(200).json({
     status: 'success',
-    results: doc.length,
     data: {
-      data: doc
-    }
+      data: doc,
+      NombresNotifications:doc.length
+    },
+    
   });
 });
 
