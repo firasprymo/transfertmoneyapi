@@ -5,6 +5,31 @@ const conversation = require('../models/conversationModel');
 const factory = require('./handlerFactory');
 const APIFeatures = require('./../utils/apiFeatures');
 
+//Checks to see if conversation containing two users is in db
+exports.findConcersation = catchAsync(async (req, res, next) => {
+  conversation.findOne({ participants: { $all: [req.user._id,req.params.recipient]}})
+    .populate({
+        path: 'participants',
+        select: 'name role email'
+    })
+    .exec(function (err, conversations) {
+        if(conversations) {
+        res.status(200).json({ 
+            isPresent: true,
+            message: "Found the conversation! ",
+            conversationId : conversations._id, participants : conversations.participants 
+            });
+        } else {
+        res.status(200).json({ 
+        isPresent: false,
+        message: "CONVERSATION NOT FOUND ",
+        });
+    }
+    });
+
+});
+
+
 // start new Chat
 exports.startChat = catchAsync(async (req, res, next) => {
   if (!req.params.recipient) {
@@ -16,10 +41,8 @@ exports.startChat = catchAsync(async (req, res, next) => {
   data.save(function (err, newConversation) {
     if (err) {
       res.send({ message: "Vous ne pouvez pas faire une conversation " });
-      return next(err);
     }
     res.status(200).json({ message: 'Conversation started!', conversationId: newConversation._id });
-    return next();
   });
 });
 
@@ -83,7 +106,7 @@ exports.updateMessage = factory.updateOne(message);
 exports.deleteMessage = factory.deleteOne(message);
 
 //LISTE message by user
-exports.getUserMessages = catchAsync(async(req, res, next) => {
+exports.getUserMessages = catchAsync(async (req, res, next) => {
 
 
   if (req.user.id) filter = { sender: req.user.id };
