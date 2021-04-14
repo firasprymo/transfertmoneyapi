@@ -53,10 +53,10 @@ const transactionSchema = new mongoose.Schema({
     required:true,
     default:false
   },
-  createdAt: {
-    type: Date,
-    default: Date.now()
-  },
+  // createdAt: {
+  //   type: Date,
+  //   default: Date.now()
+  // },
 
   users: {
     type: mongoose.Schema.ObjectId,

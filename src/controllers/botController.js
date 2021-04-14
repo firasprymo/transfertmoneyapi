@@ -39,7 +39,7 @@ exports.activeMessage = catchAsync(async (req, res) => {
     await Bot.findByIdAndUpdate(req.body.id, {
         status: true,
     });
-    // console.log('user',user);
+
     res.status(200).json({
         message: 'Message Lu',
 

@@ -296,8 +296,8 @@ exports.sendCodeVerification = catchAsync(async (req, res, next) => {
 
 exports.resetCodePin = catchAsync(async (req, res, next) => {
   // 1) Get user based on the token
-
-  const user = await User.findOne({ phoneNumber: req.body.phonenumber }).select(
+  var decoded = jwt.decode(req.body.token,process.env.JWT_SECRET)
+  const user = await User.findById(decoded.id).select(
     '+password'
   );
   if (

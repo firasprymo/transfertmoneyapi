@@ -185,7 +185,7 @@ const Solde = async (Token, req, res, next) => {
     if (!solde) {
         return next(new AppError('You are not authorized', 401));
     }
-    // console.log(solde)
+ 
     res.status(200).send({
         data: solde.data
     });

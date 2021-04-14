@@ -13,7 +13,7 @@ exports.ConsulterSolde = catchAsync(async (req, res, next) => {
   };
 
   const X_Reference_id = await axios.request(options);
-  console.log(X_Reference_id.status)
+ 
   await factoryTransaction.Generate_Api_User(X_Reference_id, next);
   await factoryTransaction.GetApiKey(X_Reference_id, req, res, next);
 });

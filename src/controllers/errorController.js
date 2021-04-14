@@ -6,7 +6,7 @@ const handleCastErrorDB = err => {
 };
 
 const handleDuplicateFieldsDB = err => {
-  const value = err.errmsg.match(/(["'])(\\?.)*?\1/)[0];
+  const value = err.errmsg.match(/(["'])(\\?.)*?\1/);
 
   const error = `Duplicate field value: ${value}. vérifer le numéro ou votre email!`;
   return new AppError(error, 410);

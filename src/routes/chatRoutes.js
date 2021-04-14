@@ -8,6 +8,8 @@ router.use(authController.protect);
 router.post('/SendMessage',botController.SendMessage);
 router.patch('/luMessage', botController.activeMessage);
 router.get('/listeMessageByUser/:id',botController.getMessageByUserId)
+//find if conversation existe
+router.get('/find/:recipient',chatController.findConcersation)
 //creer conversation
 router.get('/newCoversation/:recipient',chatController.startChat);
 //chat netre les deux 
