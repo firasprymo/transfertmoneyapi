@@ -1,15 +1,16 @@
 
 exports = module.exports = function (io) {
-
+ var users = []
 // USER STATUS LOGS START
   io.sockets.on('connection', (socket) => {
     console.log(' SOCKET ID ON SERVER ' + socket.id);
-    
+    console.log("hhhh")
     socket.on('userdata', (user) =>{
-      socket.username = user.username;
-      socket.name = user.name;
-      socket.on('disconnect', () => {
-      });
+      socket.user = user;
+      users.push(user)
+     
+    });
+    socket.on('disconnect', () => {
     });
 
 // USER STATUS LOGS END
