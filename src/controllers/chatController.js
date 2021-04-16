@@ -64,7 +64,7 @@ exports.sendMessage = catchAsync(async (req, res, next) => {
       return next(err);
     }
 
-    res.status(200).json({ message: 'message envoyer avec succes', data: req.body.message });
+    res.status(200).json({ message: 'message envoyer avec succés', data: req.body.message });
     return (next);
   });
 
@@ -76,6 +76,7 @@ exports.getListMessages = catchAsync(async (req, res, next) => {
   if (!req.params.conversationId) {
     return next(new AppError("il faut envoyer l'id de conversation", 400));
   }
+
   const listeMessage = await message.find({ conversationId: req.params.conversationId })
     .select('createdAt message sender')
     .sort('-createdAt')
