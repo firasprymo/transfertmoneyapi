@@ -33,71 +33,29 @@ const port = process.env.PORT || 3000;
 
 const ws = createServer(app);
 const io = socketIo(ws);
-let interval;
-const users = []
- 
 
-io.on("connection", (socket) => {
-   console.log("New client connected");
-//  console.log("ddd")
-// console.log(socket);
-// console.log(socket.rooms);
-  socket.on('userdata', (user) => {
-  console.log(user)
-  socket.emit("FromAPI", user);
-    users.push(user)
-    updateClients();
-    
-    // socket.username = user.username;
-    // socket.name = user.name;
-    socket.on('disconnect', () => {
-    });
-  });
-
-
-  if (interval) {
-    clearInterval(interval);
-  }
-  interval = setInterval(() => getApiAndEmit(socket), 5000);
-  socket.on("disconnect", () => {
-    console.log("Client disconnected");
-    clearInterval(interval);
-  });
-});
-ws.listen(4112, () => {
-  console.log("df")
+ws.listen(port, () => {
+  console.log(`App running on port ${port}...`)
+})
+io.use(async(socket,next) =>{
+  try {
+    const token = socket.handshake.query.token;
+    const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+    console.userId(decoded)
+    socket.userId = decoded.id;
+    next()
+  }catch(err){}
 })
 
+io.on("connection", (socket) => {
+  console.log("New client connected"+socket.userId);
+  
+   
+    socket.on('disconnect', () => {
+    });
+ 
 
-const getApiAndEmit = socket => {
-  const response = "hello socket"
-  // Emitting a new message. Will be consumed by the client
-  socket.emit("FromAPI", response);
-};
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+});
 
 
 

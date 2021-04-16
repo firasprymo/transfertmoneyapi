@@ -56,10 +56,6 @@ const userSchema = new mongoose.Schema({
       message: 'votre numero doit etre au minimum 10 characters'
     }
   },
-  idDevice :{
-    type:String,
-    required:true
-  },
 
   passwordConfirm: {
     type: String,
