@@ -60,3 +60,28 @@ exports.getUserHistorique = catchAsync(async (req, res, next) => {
     }
   });
 });
+
+
+exports.trensfertUbPay = catchAsync(async(req,res,next) =>{
+  var options = {
+    method: 'post',
+    url:process.env.URL_UB_PAY,
+    headers: { 
+      'Content-Type': 'application/json'
+    },
+    data : req.body
+  };
+  var trensfert  = new Transaction ({
+    amount:req.body.amount,
+    currency:req.body.currency,
+    payerMessage:req.body.description,
+    users:req.user.id,
+    merchantRef:req.body.merchantRef
+
+  })
+  await trensfert.save()
+  var trensfert = await axios.request(options);
+  res.status(200).send({
+    data:trensfert.data
+  })
+})
