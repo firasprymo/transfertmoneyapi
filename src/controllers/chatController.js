@@ -82,7 +82,7 @@ exports.getListMessages = catchAsync(async (req, res, next) => {
     .sort('-createdAt')
     .populate({
       path: 'sender',
-      select: 'name role'
+      select: 'name role photo'
     })
 
   res.status(200).json({ conversation: listeMessage })
