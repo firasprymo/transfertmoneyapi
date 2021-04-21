@@ -53,8 +53,7 @@ io.on("connection", (socket) => {
  
 });
 
-app.post('/SendMessage/:conversationId', async (req, res, next) => {
-  console.log('hhhhhhhhhhhhhh')
+app.post('/api/v1/SendMessage/:conversationId', async (req, res, next) => {
   if (!req.body.message) {
     return next(new AppError("il faut saisir un message", 400));
   }
