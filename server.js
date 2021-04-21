@@ -61,7 +61,7 @@ app.post('/SendMessage/:conversationId', async (req, res, next) => {
   const data = new message({
     conversationId: req.params.conversationId,
     message: req.body.message,
-    sender: req.user.id
+   // sender: req.user.id
   });
   io.emit('chat',data);
   data.save(function (err, sentReply) {
