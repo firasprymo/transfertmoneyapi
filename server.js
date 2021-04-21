@@ -2,6 +2,9 @@ const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const { createServer } = require('http');
 const socketIo = require("socket.io");
+const catchAsync = require("./src/utils/catchAsync");
+const message = require('./src/models/messageModel');
+
 //const chatController = require('./src/controllers/chatController')
 process.on('uncaughtException', err => {
   console.log('UNCAUGHT EXCEPTION! 💥 Shutting down...');
@@ -33,41 +36,61 @@ const port = process.env.PORT || 3000;
 
 const ws = createServer(app);
 const io = socketIo(ws);
+//  const senddata = () =>{
+//   io.emit('visitor','helllllllllllll')
+//  }
+io.on("connection", (socket) => {
+  io.emit('chat',socket.id)
+  socket.emit('connection:sid', socket.id);
+  socket.on('chat',(data) =>{
+
+  })
+  socket.on("disconnect", () => {
+  
+    
+   
+  });
+ 
+});
+
+app.post('/SendMessage/:conversationId', async (req, res, next) => {
+  console.log('hhhhhhhhhhhhhh')
+  if (!req.body.message) {
+    return next(new AppError("il faut saisir un message", 400));
+  }
+  const data = new message({
+    conversationId: req.params.conversationId,
+    message: req.body.message,
+    sender: req.user.id
+  });
+  io.emit('chat',data);
+  data.save(function (err, sentReply) {
+    if (err) {
+      res.send({ message: 'message non envoyer ' });
+      return next(err);
+    }
+
+    res.status(200).json({ message: 'message envoyer avec succés', data: req.body.message });
+    return (next);
+  });
+
+});
+
+
 
 ws.listen(port, () => {
   console.log(`App running on port ${port}...`)
 })
-io.use(async(socket,next) =>{
-  try {
-    const token = socket.handshake.query.token;
-    const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
-    console.userId(decoded)
-    socket.userId = decoded.id;
-    next()
-  }catch(err){}
-})
-
-io.on("connection", (socket) => {
-  console.log("New client connected"+socket.userId);
-  
-   
-    socket.on('disconnect', () => {
-    });
- 
-
-});
 
 
 
-
-
-process.on('unhandledRejection', err => {
-  console.log('UNHANDLED REJECTION! 💥 Shutting down...');
-  console.log(err, err.name, err.message);
-  server.close(() => {
-    process.exit(1);
-  });
-});
+// process.on('unhandledRejection', err => {
+//   console.log('UNHANDLED REJECTION! 💥 Shutting down...');
+//   console.log(err, err.name, err.message);
+//   server.close(() => {
+//     process.exit(1);
+//   });
+// });
 
 process.on('SIGTERM', () => {
   console.log('👋 SIGTERM RECEIVED. Shutting down gracefully');

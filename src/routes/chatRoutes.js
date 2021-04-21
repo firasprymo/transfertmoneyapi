@@ -13,7 +13,7 @@ router.get('/find/:recipient',chatController.findConcersation)
 //creer conversation
 router.get('/newCoversation/:recipient',chatController.startChat);
 //chat netre les deux 
-router.post('/sendMessage/:conversationId',chatController.sendMessage);
+//router.post('/sendMessage/:conversationId',chatController.sendMessage);
 //get liste des message dans une conversation
 router.get('/GetMessages/:conversationId',chatController.getListMessages);
 //update status message

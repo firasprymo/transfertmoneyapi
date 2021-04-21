@@ -4,27 +4,26 @@ const message = require('../models/messageModel');
 const conversation = require('../models/conversationModel');
 const factory = require('./handlerFactory');
 const APIFeatures = require('./../utils/apiFeatures');
-
 //Checks to see if conversation containing two users is in db
 exports.findConcersation = catchAsync(async (req, res, next) => {
-  conversation.findOne({ participants: { $all: [req.user._id,req.params.recipient]}})
+  conversation.findOne({ participants: { $all: [req.user._id, req.params.recipient] } })
     .populate({
-        path: 'participants',
-        select: 'name role email'
+      path: 'participants',
+      select: 'name role email'
     })
     .exec(function (err, conversations) {
-        if(conversations) {
-        res.status(200).json({ 
-            isPresent: true,
-            message: "Found the conversation! ",
-            conversationId : conversations._id, participants : conversations.participants 
-            });
-        } else {
-        res.status(200).json({ 
-        isPresent: false,
-        message: "CONVERSATION NOT FOUND ",
+      if (conversations) {
+        res.status(200).json({
+          isPresent: true,
+          message: "Found the conversation! ",
+          conversationId: conversations._id, participants: conversations.participants
         });
-    }
+      } else {
+        res.status(200).json({
+          isPresent: false,
+          message: "CONVERSATION NOT FOUND ",
+        });
+      }
     });
 
 });
@@ -48,27 +47,30 @@ exports.startChat = catchAsync(async (req, res, next) => {
 
 
 //chat entre le users et ladmin
-exports.sendMessage = catchAsync(async (req, res, next) => {
-  if (!req.body.message) {
-    return next(new AppError("il faut saisir un message", 400));
-  }
-  const data = new message({
-    conversationId: req.params.conversationId,
-    message: req.body.message,
-    sender: req.user.id
-  });
+// exports.sendMessage = catchAsync(async (req, res, next) => {
+//   if (!req.body.message) {
+//     return next(new AppError("il faut saisir un message", 400));
+//   }
 
-  data.save(function (err, sentReply) {
-    if (err) {
-      res.send({ message: 'message non envoyer ' });
-      return next(err);
-    }
+//   const data = new message({
+//     conversationId: req.params.conversationId,
+//     message: req.body.message,
+//     sender: req.user.id
+//   });
+//        //if (socket) {
+//          // socket.emit('order',data);
+//        //}
+//   data.save(function (err, sentReply) {
+//     if (err) {
+//       res.send({ message: 'message non envoyer ' });
+//       return next(err);
+//     }
 
-    res.status(200).json({ message: 'message envoyer avec succés', data: req.body.message });
-    return (next);
-  });
+//     res.status(200).json({ message: 'message envoyer avec succés', data: req.body.message });
+//     return (next);
+//   });
 
-});
+// });
 
 
 //get list of messages in chat
