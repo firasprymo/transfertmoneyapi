@@ -86,9 +86,9 @@ app.use('/api/v1/transferts', transactionRouter);
 app.use('/api/v1/notifications',notificationRouter)
 app.use('/api/v1/chats',chatRouter)
 
-app.all('*', (req, res, next) => {
-  next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
-});
+// app.all('*', (req, res, next) => {
+//   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
+// });
 
 app.use(globalErrorHandler);
 
