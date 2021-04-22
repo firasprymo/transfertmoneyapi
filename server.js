@@ -40,11 +40,23 @@ const io = socketIo(ws);
 //   io.emit('visitor','helllllllllllll')
 //  }
 io.on("connection", (socket) => {
-  io.emit('chat',socket.id)
-  socket.emit('connection:sid', socket.id);
+  io.emit('chat',"foued ta7cha")
+  console.log("conx")
   socket.on('chat',(data) =>{
-
+     console.log(data,"fffffffffffffffffff")
   })
+  // const respence = {
+	// 	createdAt: "2021-04-20T10:28:10.350Z",
+	// 	_id: "607f3e6d28e6933afd67d61b",
+	// 	message:"test",
+	// 	sender: {
+	// 	  photo: "user-606dd1382c8d3418e4c37e7f-1618835235601.jpeg",
+	// 	  role: "user",
+	// 	  _id: "607e8b3279a7a3356406c691",
+	// 	  name: "Foued"
+	// 	}
+  // }
+ 
   socket.on("disconnect", () => {
   
     
@@ -60,7 +72,7 @@ app.post('/api/v1/SendMessage/:conversationId', async (req, res, next) => {
   const data = new message({
     conversationId: req.params.conversationId,
     message: req.body.message,
-   // sender: req.user.id
+    sender: req.body.sender
   });
   io.emit('chat',data);
   data.save(function (err, sentReply) {
@@ -83,13 +95,13 @@ ws.listen(port, () => {
 
 
 
-// process.on('unhandledRejection', err => {
-//   console.log('UNHANDLED REJECTION! 💥 Shutting down...');
-//   console.log(err, err.name, err.message);
-//   server.close(() => {
-//     process.exit(1);
-//   });
-// });
+process.on('unhandledRejection', err => {
+  console.log('UNHANDLED REJECTION! 💥 Shutting down...');
+  console.log(err, err.name, err.message);
+  server.close(() => {
+    process.exit(1);
+  });
+});
 
 process.on('SIGTERM', () => {
   console.log('👋 SIGTERM RECEIVED. Shutting down gracefully');
