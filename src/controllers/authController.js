@@ -213,7 +213,7 @@ exports.restrictTo = (...roles) => {
 
 exports.forgotPassword = catchAsync(async (req, res, next) => {
   // 1) Get user based on POSTed email
-
+  
   const SMSCode = await client.verify
     .services(process.env.TWILIO_SERVICE_ID)
     .verifications.create({
@@ -223,6 +223,7 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
     });
 
   const user = await User.findOne({ phoneNumber: req.body.phonenumber });
+
   if (!user) {
     return next(
       new AppError(
