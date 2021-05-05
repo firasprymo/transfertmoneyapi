@@ -350,7 +350,7 @@ exports.loginCodePin = catchAsync(async (req, res, next) => {
   }
   // 2) Check if user exists && password is correct
   const user = await User.findOne({ codePin }).select('+password');
-  if (!user || !(user.codePin === codePin)) {
+  if (!user || !(req.user.codePin === codePin)) {
     return next(new AppError('Incorrect codePin', 401));
   }
   if (!user.active) {
