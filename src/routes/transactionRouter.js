@@ -6,7 +6,7 @@ const router = express.Router();
 router.use(authController.protect);
 router.get('/accountBalance',transactionController.ConsulterSolde)
 router.post('/transfertArgent', transactionController.transferArgent);
-router.post('/ternsfertByUBpay', transactionController.trensfertUbPay)
+router.post('/Transfert', transactionController.TransfertArgentManyOperateyr)
 
 router.get('/historiques', transactionController.getAllTransactions);
 router.get('/UserHistorique', transactionController.getUserHistorique);

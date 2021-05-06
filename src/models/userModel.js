@@ -36,6 +36,7 @@ const userSchema = new mongoose.Schema({
     type: Number,
     minlength: 4,
     maxlength: 4,
+    unique:true,
     validate: {
       validator: function(el) {
         return el.toString().length === 4;
