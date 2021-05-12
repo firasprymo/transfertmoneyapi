@@ -38,6 +38,7 @@ const ws = createServer(app);
 const io = socketIo(ws);
 
 io.on("connection", (socket) => {
+  console.log('conn')
   socket.on('chat', (data) => {
   })
   socket.on("disconnect", () => {

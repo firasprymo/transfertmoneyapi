@@ -8,11 +8,12 @@ router.get('/accountBalance',transactionController.ConsulterSolde)
 router.post('/transfertArgent', transactionController.transferArgent);
 router.post('/Transfert', transactionController.TransfertArgentManyOperateyr)
 
+router.get('/soldeUbPay',transactionController.consulterSolde);
+
 router.get('/historiques', transactionController.getAllTransactions);
 router.get('/UserHistorique', transactionController.getUserHistorique);
 router
   .route('/:id')
-  
   .patch(transactionController.updateTransaction)
   .delete(transactionController.deleteTransaction);
 

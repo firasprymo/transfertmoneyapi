@@ -51,7 +51,6 @@ exports.getUserHistorique = catchAsync(async (req, res, next) => {
   if (!doc) {
     return next(new AppError('No document found with that ID', 404));
   }
-
   res.status(200).json({
     status: 'success',
     results: doc.length,
@@ -60,7 +59,23 @@ exports.getUserHistorique = catchAsync(async (req, res, next) => {
     }
   });
 });
+//get balence ubpay
+exports.consulterSolde = catchAsync(async(req,res,next) =>{
+  var options = {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${"7265838e-f2a6-414b-bb01-8a8adf082c67"}`
+  },
+    url: process.env.URL_CONSULTER_SOLDE
+  }
 
+  var solde = await axios.request(options);
+  //console.log(solde.data)
+  if(!solde) {
+    return next (new AppError("verifer votre token",401))
+  }
+  res.status(200).send(solde.data)
+})
 
 // exports.trensfertUbPay = catchAsync(async(req,res,next) =>{
 //   var options = {
@@ -98,6 +113,7 @@ exports.TransfertArgentManyOperateyr = catchAsync(async (req, res, next) => {
     data: req.body
   }
   var data = await axios.request(options)
+  console.log(data)
   if (!data) {
     return next(new AppError('Erreur lors de transfert', 400))
   }

@@ -1,6 +1,7 @@
 const AppError = require('../utils/appError');
 const axios = require('axios')
 const Transaction = require('../models/transactionModal');
+const catchAsync = require('../utils/catchAsync');
 
 //generate ressource id (UUID)
 exports.Generate_Api_User = async (X_Reference_id, next) => {
@@ -17,6 +18,7 @@ exports.Generate_Api_User = async (X_Reference_id, next) => {
         }
     };
     const Api_User = await axios.request(options);
+    console.log(Api_User.status,"Api_User")
   
     if (!Api_User) {
         return next(new AppError('Api user not created', 400));
@@ -42,7 +44,7 @@ exports.CreatedUser = async (X_Reference_id, next) => {
 
 
 //get api key
-exports.GetApiKey = async (X_Reference_id, req, res, next) => {
+exports.GetApiKey = catchAsync(async (X_Reference_id, req, res, next) => {
     var options = {
         method: 'POST',
         url:
@@ -56,6 +58,7 @@ exports.GetApiKey = async (X_Reference_id, req, res, next) => {
         }
     };
     const Api_Key = await axios.request(options);
+    console.log(Api_Key.status,"Api_Key")
     if (!Api_Key) {
         return next(
             new AppError('Reference id not found or closed in sandbox', 404)
@@ -74,22 +77,23 @@ exports.GetApiKey = async (X_Reference_id, req, res, next) => {
 
     var options2 = {
         method: 'POST',
-        url: process.env.URL_MOMO_CREATE_COLLECTION,
+        url: 'https://sandbox.momodeveloper.mtn.com/disbursement/token/',
 
         headers: {
-            'Ocp-Apim-Subscription-Key': process.env.MOMO_Ocp_Apim_Subscription_KEY,
+            'Ocp-Apim-Subscription-Key': '0293d62dffc144ecbf03fab4e0b5d054',
             Authorization: `Basic ${token}`
         }
     };
     const Token = await axios.request(options2);
+    console.log(Token.status,"Token")
     if (!Token) {
         return next(new AppError('You are not authorized', 401));
     }
     await Solde(Token, req, res, next);
-};
+});
 
 
-exports.GetAPITransfert = async (X_Reference_id, req, res, next) => {
+exports.GetAPITransfert = catchAsync(async (X_Reference_id, req, res, next) => {
     var options = {
         method: 'POST',
         url:
@@ -135,11 +139,11 @@ exports.GetAPITransfert = async (X_Reference_id, req, res, next) => {
     }
 
     await trensferArgent(Token, X_Reference_id, req, res, next);
-};
+});
 
 
 
-const trensferArgent = async (Token, X_Reference_id, req, res, next) => {
+const trensferArgent = catchAsync( async (Token, X_Reference_id, req, res, next) => {
     req.body.payee.partyId = req.user.phoneNumber
     var options = {
         method: 'POST',
@@ -164,29 +168,28 @@ const trensferArgent = async (Token, X_Reference_id, req, res, next) => {
     } else {
         res.send({ message: 'echec de transfert' });
     }
-};
+});
 
 
 
-const Solde = async (Token, req, res, next) => {
+const Solde = catchAsync(async (Token, req, res, next) => {
     var options = {
         method: 'GET',
         url:
-            'https://sandbox.momodeveloper.mtn.com/collection/v1_0/account/balance',
+            'https://sandbox.momodeveloper.mtn.com/disbursement/v1_0/account/balance',
 
         headers: {
             'X-Target-Environment': process.env.MOMO_X_Targe_Environement,
-            'Ocp-Apim-Subscription-Key': process.env.MOMO_Ocp_Apim_Subscription_KEY,
+             'Ocp-Apim-Subscription-Key': '0293d62dffc144ecbf03fab4e0b5d054',
+            //'Ocp-Apim-Subscription-Key': '1267d51eb15643009ec7f025d6801e8d',
             Authorization: `Bearer ${Token.data.access_token}`
         }
     };
-    const solde = await axios.request(options);
+    //const solde = await axios.request(options);
+    //console.log(solde.data,"solde")
     
-    if (!solde) {
-        return next(new AppError('You are not authorized', 401));
-    }
- 
-    res.status(200).send({
-        data: solde.data
-    });
-};
+    axios.request(options).then((response) =>{
+        res.status(200).json(response.data);
+    })
+
+});
